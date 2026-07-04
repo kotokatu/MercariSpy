@@ -18,11 +18,11 @@ class TelegramNotifier:
         self.config = config
         self.logger = get_logger("TelegramNotifier")
 
-        # self.bot_token = os.getenv('TELEGRAM_BOT_TOKEN')
-        # self.chat_id = os.getenv('TELEGRAM_CHAT_ID')
+        self.bot_token = os.getenv('TELEGRAM_BOT_TOKEN')
+        self.chat_id = os.getenv('TELEGRAM_CHAT_ID')
 
-        # if not self.bot_token or not self.chat_id:
-        #    raise ValueError("TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID must be set in .env")
+        if not self.bot_token or not self.chat_id:
+           raise ValueError("TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID are missing")
 
         self.base_url = f"https://api.telegram.org/bot{self.bot_token}"
         # Default JPY to EUR rate. Update this value if the rate changes significantly.
@@ -135,11 +135,11 @@ if __name__ == "__main__":
     # from dotenv import load_dotenv
     # load_dotenv()
 
-    # self.bot_token = os.getenv('TELEGRAM_BOT_TOKEN')
-    # self.chat_id = os.getenv('TELEGRAM_CHAT_ID')
+    self.bot_token = os.getenv('TELEGRAM_BOT_TOKEN')
+    self.chat_id = os.getenv('TELEGRAM_CHAT_ID')
 
-    # if not self.bot_token or not self.chat_id:
-    #    raise ValueError("Missing TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID (check environment variables)")
+    if not self.bot_token or not self.chat_id:
+       raise ValueError("Missing TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID (check environment variables)")
     
     # Load config for testing
     try:
