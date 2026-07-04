@@ -40,20 +40,15 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      # 5. Создаём .env из GitHub Secrets
-      - name: Create .env file
-        run: |
-          cat <<EOF > .env
-          TELEGRAM_BOT_TOKEN=${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHAT_ID=${{ secrets.TELEGRAM_CHAT_ID }}
-          EOF
-
       # 6. (Важно) гарантируем headless режим через env
       - name: Set environment
         run: echo "HEADLESS=true" >> $GITHUB_ENV
 
       # 7. Запуск бота
       - name: Run MercariSpy
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
           python main.py --once
 
