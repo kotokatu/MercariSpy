@@ -9,6 +9,8 @@ import time
 import schedule
 # from dotenv import load_dotenv
 from pathlib import Path
+from typing import Dict
+
 
 from logging_config import get_logger
 from mercari_scraper import MercariScraper
