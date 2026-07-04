@@ -156,15 +156,13 @@ class MercariScraper:
             driver = self._get_driver()
 
             params = {
-                "keyword": query["keyword"]
+                "keyword": query["keyword"],
+                "status": "on_sale"
             }
 
             # необязательные параметры
             if query.get("category_id"):
                 params["category_id"] = query["category_id"]
-
-            if query.get("status"):
-                params["status"] = query["status"]
 
             if query.get("price_min"):
                 params["price_min"] = query["price_min"]
