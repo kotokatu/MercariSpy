@@ -67,12 +67,8 @@ class MercariMonitor:
                 queries_file.touch()
                 return []
 
-            with open(queries_file, "r", encoding="utf-8") as f:
-                queries = [
-                    line.strip()
-                    for line in f
-                    if line.strip() and not line.startswith("#")
-                ]
+            with open(queries_file, encoding="utf-8") as f:
+                queries = json.load(f)
 
             self.logger.info(
                 "Loaded search queries", query_count=len(queries)
@@ -83,7 +79,7 @@ class MercariMonitor:
             self.logger.error("Failed to load search queries", error=str(e))
             return []
 
-    def process_query(self, query: Dict) -> None:
+    def process_query(self, query) -> None:
         """Process a single search query and notify of new products."""
         try:
             self.logger.info("Processing query", query=query)
@@ -140,8 +136,7 @@ class MercariMonitor:
     def run_once(self) -> None:
         """Run monitoring once for all queries."""
         try:
-            with open("queries.json", encoding="utf-8") as f:
-                queries = json.load(f)
+            queries = self.load_search_queries()
             if not queries:
                 self.logger.warning("No search queries configured. Skipping run.")
                 return
