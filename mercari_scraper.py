@@ -43,7 +43,10 @@ class MercariScraper:
                 options.add_argument(option)
 
             self.logger.info("Creating new WebDriver instance...")
-            driver = uc.Chrome(options=options)
+            driver = uc.Chrome(
+                options=options,
+                version_main=149,
+            )
             driver.set_page_load_timeout(
                 self.config["browser"]["page_load_timeout"]
             )
