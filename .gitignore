@@ -27,8 +27,6 @@ logs/
 
 # Screenshots and data
 screenshots/
-mercari_known_products.json
-mercari_known_products.backup.json
 *.tmp
 *.bak
 *.swp
