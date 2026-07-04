@@ -2,9 +2,8 @@ name: MercariSpy
 
 on:
   schedule:
-    - cron: "0 */1 * * *"
-  workflow_dispatch:
-
+    # - cron: "0 */1 * * *"
+     - cron: '*/15 * * * *'
 permissions:
   contents: write
 
