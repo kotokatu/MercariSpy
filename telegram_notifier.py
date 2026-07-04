@@ -132,8 +132,14 @@ if __name__ == "__main__":
     print("--- Testing TelegramNotifier ---")
     
     # Load environment variables for testing
-    from dotenv import load_dotenv
-    load_dotenv()
+    # from dotenv import load_dotenv
+    # load_dotenv()
+
+    token = os.getenv("TELEGRAM_BOT_TOKEN")
+    chat_id = os.getenv("TELEGRAM_CHAT_ID")
+
+    if not token or not chat_id:
+        raise ValueError("Missing TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID")
     
     # Load config for testing
     try:
