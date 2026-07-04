@@ -10,6 +10,8 @@ import os
 import json
 from typing import List, Dict, Optional
 from urllib.parse import quote
+from urllib.parse import urlencode
+
 
 import undetected_chromedriver as uc
 from selenium.webdriver.common.by import By
@@ -142,59 +144,136 @@ class MercariScraper:
             self.logger.error(f"Error parsing product card: {e}")
             return None
 
-    def search_products(self, query: str) -> List[Dict]:
+            from urllib.parse import urlencode
+
+
+    def search_products(self, query: Dict) -> List[Dict]:
         """
-        Performs a search on Mercari and scrapes the results.
+        Performs a search on Mercari using a query object.
         """
+
         try:
             driver = self._get_driver()
+
+            params = {
+                "keyword": query["keyword"]
+            }
+
+            # необязательные параметры
+            if query.get("category_id"):
+                params["category_id"] = query["category_id"]
+
+            if query.get("status"):
+                params["status"] = query["status"]
+
+            if query.get("price_min"):
+                params["price_min"] = query["price_min"]
+
+            if query.get("price_max"):
+                params["price_max"] = query["price_max"]
+
             search_url = (
-                f"{self.config['mercari_urls']['search_url']}?keyword={quote(query)}"
+                f"{self.config['mercari_urls']['search_url']}?"
+                f"{urlencode(params)}"
             )
-            self.logger.info(f"Searching for query: '{query}'")
+
+            self.logger.info(f"Searching: {search_url}")
+
             driver.get(search_url)
 
-            listings_container_selector = self.config["selectors"][
-                "listings_container"
-            ]
+            listings_container_selector = self.config["selectors"]["listings_container"]
             timeout = self.config["browser"]["implicit_wait"]
+
             WebDriverWait(driver, timeout).until(
                 EC.presence_of_element_located(
                     (By.CSS_SELECTOR, listings_container_selector)
                 )
             )
 
-            # Find all individual product elements
             listing_elements = driver.find_elements(
-                By.CSS_SELECTOR, self.config["selectors"]["product_listings"]
+                By.CSS_SELECTOR,
+                self.config["selectors"]["product_listings"]
             )
+
             self.logger.info(
-                f"Found {len(listing_elements)} potential listings on page."
+                f"Found {len(listing_elements)} potential listings."
             )
 
             products = []
-            for element in listing_elements:
-                product_data = self._extract_product_data(element)
-                if product_data:
-                    products.append(product_data)
 
-            self.logger.info(
-                f"Successfully extracted {len(products)} valid products."
-            )
+            for element in listing_elements:
+                product = self._extract_product_data(element)
+                if product:
+                    products.append(product)
+
             return products
 
         except TimeoutException:
             self.logger.error(
-                f"Timed out waiting for product listings for query: '{query}'. "
-                "Mercari may be blocking the request or has changed its layout."
+                f"Timed out waiting for results for '{query['keyword']}'"
             )
-            self.take_screenshot(f"failure_{query.replace(' ', '_')}")
+            self.take_screenshot(query["keyword"])
             return []
+
         except Exception as e:
-            self.logger.error(f"An unexpected error occurred during search: {e}")
-            self.take_screenshot(f"error_{query.replace(' ', '_')}")
+            self.logger.error(f"Search error: {e}")
+            self.take_screenshot(query["keyword"])
             self.close()
             return []
+
+    # def search_products(self, query: str) -> List[Dict]:
+    #     """
+    #     Performs a search on Mercari and scrapes the results.
+    #     """
+    #     try:
+    #         driver = self._get_driver()
+    #         search_url = (
+    #             f"{self.config['mercari_urls']['search_url']}?keyword={quote(query)}"
+    #         )
+    #         self.logger.info(f"Searching for query: '{query}'")
+    #         driver.get(search_url)
+
+    #         listings_container_selector = self.config["selectors"][
+    #             "listings_container"
+    #         ]
+    #         timeout = self.config["browser"]["implicit_wait"]
+    #         WebDriverWait(driver, timeout).until(
+    #             EC.presence_of_element_located(
+    #                 (By.CSS_SELECTOR, listings_container_selector)
+    #             )
+    #         )
+
+    #         # Find all individual product elements
+    #         listing_elements = driver.find_elements(
+    #             By.CSS_SELECTOR, self.config["selectors"]["product_listings"]
+    #         )
+    #         self.logger.info(
+    #             f"Found {len(listing_elements)} potential listings on page."
+    #         )
+
+    #         products = []
+    #         for element in listing_elements:
+    #             product_data = self._extract_product_data(element)
+    #             if product_data:
+    #                 products.append(product_data)
+
+    #         self.logger.info(
+    #             f"Successfully extracted {len(products)} valid products."
+    #         )
+    #         return products
+
+    #     except TimeoutException:
+    #         self.logger.error(
+    #             f"Timed out waiting for product listings for query: '{query}'. "
+    #             "Mercari may be blocking the request or has changed its layout."
+    #         )
+    #         self.take_screenshot(f"failure_{query.replace(' ', '_')}")
+    #         return []
+    #     except Exception as e:
+    #         self.logger.error(f"An unexpected error occurred during search: {e}")
+    #         self.take_screenshot(f"error_{query.replace(' ', '_')}")
+    #         self.close()
+    #         return []
 
     def take_screenshot(self, filename: str):
         """

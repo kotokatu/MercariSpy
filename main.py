@@ -57,7 +57,7 @@ class MercariMonitor:
     def load_search_queries(self) -> list:
         """Load search queries from text file."""
         try:
-            queries_file = Path("search_queries.txt")
+            queries_file = Path("queries.json")
             if not queries_file.exists():
                 self.logger.warning(
                     "search_queries.txt not found, creating empty file"
@@ -81,7 +81,7 @@ class MercariMonitor:
             self.logger.error("Failed to load search queries", error=str(e))
             return []
 
-    def process_query(self, query: str) -> None:
+    def process_query(self, query: Dict) -> None:
         """Process a single search query and notify of new products."""
         try:
             self.logger.info("Processing query", query=query)
@@ -138,7 +138,8 @@ class MercariMonitor:
     def run_once(self) -> None:
         """Run monitoring once for all queries."""
         try:
-            queries = self.load_search_queries()
+            with open("queries.json", encoding="utf-8") as f:
+                queries = json.load(f)
             if not queries:
                 self.logger.warning("No search queries configured. Skipping run.")
                 return
