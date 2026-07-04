@@ -1,7 +1,7 @@
 {
   "metadata": {
-    "last_updated": "2026-07-04T18:34:12.164971",
-    "total_count": 235
+    "last_updated": "2026-07-04T18:50:26.271319",
+    "total_count": 242
   },
   "products": {
     "m10061354722": {
@@ -1883,6 +1883,62 @@
       "url": "https://jp.mercari.com/item/m18533766938",
       "image_url": "https://static.mercdn.net/thumb/item/webp/m18533766938_1.jpg?1781103385",
       "added_at": "2026-07-04T18:18:00.231506"
+    },
+    "m59689181952": {
+      "id": "m59689181952",
+      "title": "【新品・未使用品】5.10 ファイブテン　Guide Tennie　25㎝",
+      "price": 9000,
+      "url": "https://jp.mercari.com/item/m59689181952",
+      "image_url": "https://static.mercdn.net/thumb/item/webp/m59689181952_1.jpg?1779455308",
+      "added_at": "2026-07-04T18:50:00.293145"
+    },
+    "m65444490592": {
+      "id": "m65444490592",
+      "title": "ADIDAS FIVE TEN GUIDETENNIE PRO GTX EU40",
+      "price": 23800,
+      "url": "https://jp.mercari.com/item/m65444490592",
+      "image_url": "https://static.mercdn.net/thumb/item/webp/m65444490592_1.jpg?1775451877",
+      "added_at": "2026-07-04T18:50:00.293256"
+    },
+    "m52044608122": {
+      "id": "m52044608122",
+      "title": "5.10 ファイブテン　Guide Tennie mid 新品未使用　25㎝",
+      "price": 17000,
+      "url": "https://jp.mercari.com/item/m52044608122",
+      "image_url": "https://static.mercdn.net/thumb/item/webp/m52044608122_1.jpg?1772715886",
+      "added_at": "2026-07-04T18:50:00.293325"
+    },
+    "m72122655146": {
+      "id": "m72122655146",
+      "title": "アウトドアリサーチ ヘリウムレインジャケット",
+      "price": 19000,
+      "url": "https://jp.mercari.com/item/m72122655146",
+      "image_url": "https://static.mercdn.net/thumb/item/webp/m72122655146_1.jpg?1772353544",
+      "added_at": "2026-07-04T18:50:14.083506"
+    },
+    "m26712615119": {
+      "id": "m26712615119",
+      "title": "アウトドアリサーチ　ハーフジップフーディー",
+      "price": 3700,
+      "url": "https://jp.mercari.com/item/m26712615119",
+      "image_url": "https://static.mercdn.net/thumb/item/webp/m26712615119_1.jpg?1780206238",
+      "added_at": "2026-07-04T18:50:14.083590"
+    },
+    "m68246025605": {
+      "id": "m68246025605",
+      "title": "Outdoor Research フリースジャケット オリーブ M",
+      "price": 5000,
+      "url": "https://jp.mercari.com/item/m68246025605",
+      "image_url": "https://static.mercdn.net/thumb/item/webp/m68246025605_1.jpg?1782779051",
+      "added_at": "2026-07-04T18:50:14.083663"
+    },
+    "m95022858040": {
+      "id": "m95022858040",
+      "title": "アウトドアリサーチ　ヘリウムレインジャケットMサイズ",
+      "price": 19000,
+      "url": "https://jp.mercari.com/item/m95022858040",
+      "image_url": "https://static.mercdn.net/thumb/item/webp/m95022858040_1.jpg?1782898208",
+      "added_at": "2026-07-04T18:50:14.083729"
     }
   }
 }
