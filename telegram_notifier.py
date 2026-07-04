@@ -135,11 +135,11 @@ if __name__ == "__main__":
     # from dotenv import load_dotenv
     # load_dotenv()
 
-    token = os.getenv("TELEGRAM_BOT_TOKEN")
-    chat_id = os.getenv("TELEGRAM_CHAT_ID")
+    self.bot_token = os.getenv('TELEGRAM_BOT_TOKEN')
+    self.chat_id = os.getenv('TELEGRAM_CHAT_ID')
 
-    if not token or not chat_id:
-        raise ValueError("Missing TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID")
+    if not self.bot_token or not self.chat_id:
+        raise ValueError("Missing TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID (check environment variables)")
     
     # Load config for testing
     try:

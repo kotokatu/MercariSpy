@@ -7,7 +7,7 @@ Main orchestrator for automated product monitoring and notification system.
 import json
 import time
 import schedule
-from dotenv import load_dotenv
+# from dotenv import load_dotenv
 from pathlib import Path
 
 from logging_config import get_logger
@@ -17,7 +17,7 @@ from product_storage import ProductStorage
 from image_filter import ImageFilter
 
 # Load environment variables
-load_dotenv()
+# load_dotenv()
 
 # Initialize logger
 logger = get_logger(__name__)
