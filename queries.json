@@ -74,7 +74,12 @@
   },
   {
     "category_id":2680,
-    "keyword": "mont bell",
+    "keyword": "mont bell #5",
+    "price_max": 25000
+  },
+  {
+    "category_id":2680,
+    "keyword": "mont bell #7",
     "price_max": 25000
   }
 ]
