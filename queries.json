@@ -71,5 +71,10 @@
   {
     "category_id": 2680,
     "keyword": "enlightened equipment 50"
+  },
+  {
+    "category_id":2680,
+    "keyword": "mont bell",
+    "price_max": 25000
   }
 ]
