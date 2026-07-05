@@ -52,5 +52,20 @@
     "category_id": 2680,
     "keyword": "sea to summit",
     "price_min": 17000
+  },
+  {
+    "category_id": 2680,
+    "keyword": "850",
+    "price_min": 17000
+  },
+  {
+    "category_id": 2680,
+    "keyword": "800",
+    "price_min": 17000
+  },
+  {
+    "category_id": 2680,
+    "keyword": "900",
+    "price_min": 17000
   }
 ]
