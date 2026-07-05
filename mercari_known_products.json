@@ -1,7 +1,7 @@
 {
   "metadata": {
-    "last_updated": "2026-07-05T17:23:53.051063",
-    "total_count": 468
+    "last_updated": "2026-07-05T19:28:18.706563",
+    "total_count": 470
   },
   "products": {
     "m10061354722": {
@@ -3747,6 +3747,22 @@
       "url": "https://jp.mercari.com/item/m35783617529",
       "image_url": "https://static.mercdn.net/thumb/item/webp/m35783617529_1.jpg?1747398907",
       "added_at": "2026-07-05T17:23:38.587633"
+    },
+    "m56624960088": {
+      "id": "m56624960088",
+      "title": "クリプトナイトU字ロック　ワイヤーケーブルセット",
+      "price": 5980,
+      "url": "https://jp.mercari.com/item/m56624960088",
+      "image_url": "https://static.mercdn.net/thumb/item/webp/m56624960088_1.jpg?1783252273",
+      "added_at": "2026-07-05T19:27:19.430552"
+    },
+    "m79061946023": {
+      "id": "m79061946023",
+      "title": "モンベル シェラフ ダウンハガー800 Women's #2",
+      "price": 25000,
+      "url": "https://jp.mercari.com/item/m79061946023",
+      "image_url": "https://static.mercdn.net/thumb/item/webp/m79061946023_1.jpg?1783249851",
+      "added_at": "2026-07-05T19:27:55.631681"
     }
   }
 }
