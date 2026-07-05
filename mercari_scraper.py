@@ -164,6 +164,9 @@ class MercariScraper:
             if query.get("category_id"):
                 params["category_id"] = query["category_id"]
 
+            if query.get("brand_id"):
+                params["brand_id"] = query["brand_id"]
+
             if query.get("price_min"):
                 params["price_min"] = query["price_min"]
 
