@@ -1,7 +1,7 @@
 {
   "metadata": {
-    "last_updated": "2026-07-08T17:12:19.362811",
-    "total_count": 919
+    "last_updated": "2026-07-08T19:44:59.927408",
+    "total_count": 920
   },
   "products": {
     "m10061354722": {
@@ -7355,6 +7355,14 @@
       "url": "https://jp.mercari.com/item/m78580876595",
       "image_url": "https://static.mercdn.net/thumb/item/webp/m78580876595_1.jpg?1783527388",
       "added_at": "2026-07-08T17:09:42.043231"
+    },
+    "m13125222521": {
+      "id": "m13125222521",
+      "title": "Teton Bros. Journey Shirt 半袖シャツ L",
+      "price": 8820,
+      "url": "https://jp.mercari.com/item/m13125222521",
+      "image_url": "https://static.mercdn.net/thumb/item/webp/m13125222521_1.jpg?1783525533",
+      "added_at": "2026-07-08T19:44:07.277975"
     }
   }
 }
