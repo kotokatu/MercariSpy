@@ -1,7 +1,7 @@
 {
   "metadata": {
-    "last_updated": "2026-07-08T15:31:03.519389",
-    "total_count": 916
+    "last_updated": "2026-07-08T17:12:19.362811",
+    "total_count": 919
   },
   "products": {
     "m10061354722": {
@@ -7331,6 +7331,30 @@
       "url": "https://jp.mercari.com/item/m14642469731",
       "image_url": "https://static.mercdn.net/thumb/item/webp/m14642469731_1.jpg?1783234259",
       "added_at": "2026-07-08T15:30:49.036944"
+    },
+    "m39838921360": {
+      "id": "m39838921360",
+      "title": "RIIZE ARENA HOMME+ アントン 雑誌 タイプD",
+      "price": 1800,
+      "url": "https://jp.mercari.com/item/m39838921360",
+      "image_url": "https://static.mercdn.net/thumb/item/webp/m39838921360_1.jpg?1783526503",
+      "added_at": "2026-07-08T17:09:29.567915"
+    },
+    "m50613337362": {
+      "id": "m50613337362",
+      "title": "ウォーハンマー 40k Ork Kommandos",
+      "price": 6000,
+      "url": "https://jp.mercari.com/item/m50613337362",
+      "image_url": "https://static.mercdn.net/thumb/item/webp/m50613337362_1.jpg?1783525109",
+      "added_at": "2026-07-08T17:09:29.568051"
+    },
+    "m78580876595": {
+      "id": "m78580876595",
+      "title": "BLUE LUG 完売品 BIKE SKULL SHORTS　L",
+      "price": 3980,
+      "url": "https://jp.mercari.com/item/m78580876595",
+      "image_url": "https://static.mercdn.net/thumb/item/webp/m78580876595_1.jpg?1783527388",
+      "added_at": "2026-07-08T17:09:42.043231"
     }
   }
 }
