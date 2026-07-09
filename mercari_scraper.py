@@ -156,8 +156,7 @@ class MercariScraper:
             driver = self._get_driver()
 
             params = {
-                "status": "on_sale",
-                "sort": "created_time"
+                "status": "on_sale"
             }
 
             # необязательные параметры
