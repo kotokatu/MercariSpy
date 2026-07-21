@@ -1,14 +1,11 @@
 requests==2.31.0
 python-dotenv==1.0.0
 
-beautifulsoup4==4.12.2
-lxml==4.9.3
-
-Pillow==10.1.0
-numpy==1.24.3
-
 python-json-logger==2.0.7
-concurrent-log-handler
+concurrent-log-handler==0.9.28
 
 schedule==1.2.0
 pytz==2023.3
+
+cryptography==45.0.5
+PyJWT==2.10.1
