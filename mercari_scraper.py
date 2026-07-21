@@ -49,7 +49,7 @@ class MercariScraper:
                 "AppleWebKit/537.36 "
                 "Chrome/150 Safari/537.36"
             ),
-            "x-country-code": "DE",
+            "x-country-code": "RU",
             "x-platform": "web",
         })
 
