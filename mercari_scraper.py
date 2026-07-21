@@ -1,346 +1,374 @@
 #!/usr/bin/env python3.9
+
 """
-Mercari.jp scraping utility using undetected-chromedriver to bypass bot detection.
-This version is corrected to parse the true Yen price from the aria-label.
+Mercari.jp scraper using official internal API.
+No Selenium required.
 """
 
-import re
+
+
+import requests
 import time
-import os
-import json
+import uuid
+import hashlib
 from typing import List, Dict, Optional
-from urllib.parse import quote
-from urllib.parse import urlencode
 
-
-import undetected_chromedriver as uc
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import TimeoutException, NoSuchElementException
-
+from dpop import DPoPGenerator
 from logging_config import get_logger
+from mercari_device import MercariDevice
+
+def create_search_session_id():
+
+        return hashlib.md5(
+            str(uuid.uuid4()).encode()
+        ).hexdigest()
 
 
 class MercariScraper:
-    """
-    Handles browser automation and data extraction from Mercari.jp.
-    """
+
+    API_URL = "https://api.mercari.jp/v2/entities:search"
 
     def __init__(self, config: dict):
         self.config = config
         self.logger = get_logger("MercariScraper")
-        self.driver = None
+        self.dpop = DPoPGenerator()
+        self.device = MercariDevice()
+       
 
-    def _create_driver(self) -> uc.Chrome:
+        self.session = requests.Session()
+        
+
+        self.session.headers.update({
+            "accept": "application/json, text/plain, */*",
+            "content-type": "application/json",
+            "origin": "https://jp.mercari.com",
+            "referer": "https://jp.mercari.com/",
+            "user-agent": (
+                "Mozilla/5.0 "
+                "(Windows NT 10.0; Win64; x64) "
+                "AppleWebKit/537.36 "
+                "Chrome/150 Safari/537.36"
+            ),
+            "x-country-code": "DE",
+            "x-platform": "web",
+        })
+
+    def _build_payload(self, query: dict) -> dict:
+        search_condition = {
+        "keyword": "",
+        "excludeKeyword": "",
+
+        "sort": "SORT_CREATED_TIME",
+        "order": "ORDER_DESC",
+        "status": ["STATUS_ON_SALE"],
+
+        "sizeId": [],
+        "categoryId": [],
+        "brandId": [],
+        "sellerId": [],
+
+        "priceMin": 0,
+        "priceMax": 0,
+
+        "itemConditionId": [],
+        "shippingPayerId": [],
+        "shippingFromArea": [],
+        "shippingMethod": [],
+
+        "colorId": [],
+
+        "hasCoupon": False,
+
+        "attributes": [],
+        "itemTypes": [],
+        "skuIds": [],
+        "shopIds": [],
+
+        "excludeShippingMethodIds": [],
+    }
+
+
+        if query.get("keyword"):
+            search_condition["keyword"] = query["keyword"]
+
+
+        if query.get("category_id"):
+            search_condition["categoryId"] = [
+                query["category_id"]
+            ]
+
+
+        if query.get("brand_id"):
+            search_condition["brandId"] = [
+                query["brand_id"]
+            ]
+
+
+        if query.get("price_min"):
+            search_condition["priceMin"] = query["price_min"]
+
+
+        if query.get("price_max"):
+            search_condition["priceMax"] = query["price_max"]
+
+
+        payload = {
+            "userId": "",
+
+            "config": {
+                "responseToggles": [
+                    "QUERY_SUGGESTION_WEB_1"
+                ]
+            },
+
+            "pageSize": 120,
+            "pageToken": "",
+
+           
+
+            "source": "BaseSerp",
+
+            "indexRouting": "INDEX_ROUTING_UNSPECIFIED",
+
+            "thumbnailTypes": [],
+
+            "searchCondition": search_condition,
+
+            "serviceFrom": "suruga",
+
+            "withItemBrand": True,
+            "withItemSize": False,
+            "withItemPromotions": True,
+            "withItemSizes": True,
+
+            "withShopname": False,
+
+            "useDynamicAttribute": True,
+
+            "withSuggestedItems": True,
+            "withOfferPricePromotion": True,
+            "withProductSuggest": True,
+
+            "withParentProducts": False,
+            "withProductArticles": True,
+
+            "withSearchConditionId": False,
+
+            "withAuction": True,
+
+            "laplaceDeviceUuid":  self.device.get_device_id()
+        
+        }
+
+        return payload
+
+
+    
+    def _parse_product(self, item: dict) -> Optional[Dict]:
         """
-        Initializes a new instance of the undetected-chromedriver.
+        Convert API item into internal format.
         """
+
         try:
-            options = uc.ChromeOptions()
-            if self.config["browser"]["headless"]:
-                options.add_argument("--headless=new")
 
-            for option in self.config["browser"]["chrome_options"]:
-                options.add_argument(option)
+            product_id = item.get("id")
 
-            self.logger.info("Creating new WebDriver instance...")
-            driver = uc.Chrome(
-                options=options,
-                version_main=149,
-            )
-            driver.set_page_load_timeout(
-                self.config["browser"]["page_load_timeout"]
-            )
-            return driver
-        except Exception as e:
-            self.logger.error(f"Failed to create WebDriver: {e}")
-            raise
-
-    def _get_driver(self) -> uc.Chrome:
-        """
-        Provides a WebDriver instance, creating one if it doesn't exist.
-        """
-        if self.driver is None:
-            self.driver = self._create_driver()
-        return self.driver
-
-    def _parse_price_from_label(self, label_text: str) -> Optional[int]:
-        """
-        Extracts the Yen price from an aria-label string (e.g., "... 17,700円 ...").
-        """
-        if not label_text:
-            return None
-        # Regex to find a number (with or without commas) followed by '円'
-        match = re.search(r"([\d,]+)円", label_text)
-        if match:
-            try:
-                price_str = match.group(1).replace(",", "")
-                return int(price_str)
-            except (ValueError, IndexError):
-                self.logger.warning(
-                    f"Could not parse price from label: '{label_text}'"
-                )
-                return None
-        return None
-
-    def _extract_product_data(self, listing_element) -> Optional[Dict]:
-        """
-        Extracts all relevant data from a single product listing web element.
-        Returns None if the listing is invalid or filtered out.
-        """
-        selectors = self.config["selectors"]["product_item"]
-        try:
-            # --- CORRECTED PRICE LOGIC ---
-            # Find the specific div that contains the aria-label with the price.
-            price_container = listing_element.find_element(
-                By.CSS_SELECTOR, "div[role='img']"
-            )
-            aria_label = price_container.get_attribute("aria-label")
-            price = self._parse_price_from_label(aria_label)
-
-            # If we can't get a price, the listing is invalid. Skip it.
-            if price is None:
-                self.logger.debug(
-                    "Could not find Yen price in aria-label. Skipping item."
-                )
+            if not product_id:
                 return None
 
-            # URL and ID are derived from the 'href' inside the listing.
-            link_element = listing_element.find_element(
-                By.CSS_SELECTOR, selectors["url"]
+            price = int(
+                item.get("price", 0)
             )
-            url = link_element.get_attribute("href")
-            match = re.search(r"/item/(m\d+)", url)
-            if not match:
-                return None
-            product_id = match.group(1)
 
-            # Title
-            title = listing_element.find_element(
-                By.CSS_SELECTOR, selectors["title"]
-            ).text.strip()
+            title = (
+                item.get("name")
+                or item.get("title")
+                or ""
+            )
 
-            # Image URL
-            try:
-                img_element = listing_element.find_element(
-                    By.CSS_SELECTOR, selectors["image"]
+            image = None
+
+            if item.get("photos"):
+                image = item["photos"][0].get("uri")
+
+            elif item.get("thumbnails"):
+                image = item["thumbnails"][0]
+
+            # Private seller vs shop
+            if product_id.startswith("m"):
+                url = f"https://jp.mercari.com/en/item/{product_id}"
+            else:
+                url = (
+                    f"https://jp.mercari.com/en/shops/product/{product_id}"
                 )
-                image_url = img_element.get_attribute("src")
-            except NoSuchElementException:
-                image_url = None  # No image found
 
             return {
                 "id": product_id,
                 "title": title,
                 "price": price,
                 "url": url,
-                "image_url": image_url,
+                "image_url": image
             }
-        except NoSuchElementException as e:
-            self.logger.debug(f"Missing required element in product card: {e}")
-            return None
+
         except Exception as e:
-            self.logger.error(f"Error parsing product card: {e}")
+            self.logger.error(
+                "Failed parsing product",
+                error=str(e)
+            )
             return None
 
-            from urllib.parse import urlencode
-
-
-    def search_products(self, query: Dict) -> List[Dict]:
-        """
-        Performs a search on Mercari using a query object.
-        """
+    def search_products(self, query: dict) -> List[Dict]:
 
         try:
-            driver = self._get_driver()
 
-            params = {
-                "status": "on_sale",
-                "sort": "created_time"
-            }
+            payload = self._build_payload(query)
 
-            # необязательные параметры
-            if query.get("category_id"):
-                params["category_id"] = query["category_id"]
+            payload["searchSessionId"] = create_search_session_id()
 
-            if query.get("keyword"):
-                params["keyword"] = query["keyword"]
-
-            if query.get("brand_id"):
-                params["brand_id"] = query["brand_id"]
-
-            if query.get("price_min"):
-                params["price_min"] = query["price_min"]
-
-            if query.get("price_max"):
-                params["price_max"] = query["price_max"]
-
-            search_url = (
-                f"{self.config['mercari_urls']['search_url']}?"
-                f"{urlencode(params)}"
-            )
-
-            self.logger.info(f"Searching: {search_url}")
-
-            driver.get(search_url)
-
-            listings_container_selector = self.config["selectors"]["listings_container"]
-            timeout = self.config["browser"]["implicit_wait"]
-
-            WebDriverWait(driver, timeout).until(
-                EC.presence_of_element_located(
-                    (By.CSS_SELECTOR, listings_container_selector)
-                )
-            )
-
-            listing_elements = driver.find_elements(
-                By.CSS_SELECTOR,
-                self.config["selectors"]["product_listings"]
+            payload["laplaceDeviceUuid"] = (
+                self.device.get_device_id()
             )
 
             self.logger.info(
-                f"Found {len(listing_elements)} potential listings."
+                "Mercari API search",
+                query=query
             )
 
-            products = []
 
-            for element in listing_elements:
-                product = self._extract_product_data(element)
-                if product:
-                    products.append(product)
+            for attempt in range(3):
 
-            return products
+                headers = {
+                    "dpop": self.dpop.generate(
+                        self.API_URL,
+                        "POST"
+                    )
+                }
 
-        except TimeoutException:
+
+                try:
+
+                    response = self.session.post(
+                        self.API_URL,
+                        json=payload,
+                        headers=headers,
+                        timeout=(10,60)
+                    )
+
+
+                except requests.exceptions.ReadTimeout:
+
+                    self.logger.warning(
+                        "Mercari timeout",
+                        attempt=attempt + 1
+                    )
+
+                    time.sleep(3)
+                    continue
+
+
+                if response.status_code == 200:
+
+                    data = response.json()
+
+                    products = []
+
+                    for item in data.get("items", []):
+
+                        product = self._parse_product(item)
+
+                        if product:
+                            products.append(product)
+
+
+                    self.logger.info(
+                        "Products extracted",
+                        count=len(products)
+                    )
+
+                    return products
+
+
+                elif response.status_code == 401:
+
+                    self.logger.warning(
+                        "401 - regenerating DPoP"
+                    )
+
+                    continue
+
+
+                elif response.status_code == 429:
+
+                    self.logger.warning(
+                        "Rate limit"
+                    )
+
+                    time.sleep(10)
+                    continue
+
+
+                else:
+
+                    self.logger.error(
+                        "Mercari API error",
+                        status=response.status_code,
+                        body=response.text[:500]
+                    )
+
+                    return []
+
+
+            return []
+
+
+        except Exception as e:
+
             self.logger.error(
-                f"Timed out waiting for results for '{query['keyword']}'"
+                "Mercari request failed",
+                error=str(e)
             )
-            self.take_screenshot(query["keyword"])
+
             return []
-
-        except Exception as e:
-            self.logger.error(f"Search error: {e}")
-            self.take_screenshot(query["keyword"])
-            self.close()
-            return []
-
-    # def search_products(self, query: str) -> List[Dict]:
-    #     """
-    #     Performs a search on Mercari and scrapes the results.
-    #     """
-    #     try:
-    #         driver = self._get_driver()
-    #         search_url = (
-    #             f"{self.config['mercari_urls']['search_url']}?keyword={quote(query)}"
-    #         )
-    #         self.logger.info(f"Searching for query: '{query}'")
-    #         driver.get(search_url)
-
-    #         listings_container_selector = self.config["selectors"][
-    #             "listings_container"
-    #         ]
-    #         timeout = self.config["browser"]["implicit_wait"]
-    #         WebDriverWait(driver, timeout).until(
-    #             EC.presence_of_element_located(
-    #                 (By.CSS_SELECTOR, listings_container_selector)
-    #             )
-    #         )
-
-    #         # Find all individual product elements
-    #         listing_elements = driver.find_elements(
-    #             By.CSS_SELECTOR, self.config["selectors"]["product_listings"]
-    #         )
-    #         self.logger.info(
-    #             f"Found {len(listing_elements)} potential listings on page."
-    #         )
-
-    #         products = []
-    #         for element in listing_elements:
-    #             product_data = self._extract_product_data(element)
-    #             if product_data:
-    #                 products.append(product_data)
-
-    #         self.logger.info(
-    #             f"Successfully extracted {len(products)} valid products."
-    #         )
-    #         return products
-
-    #     except TimeoutException:
-    #         self.logger.error(
-    #             f"Timed out waiting for product listings for query: '{query}'. "
-    #             "Mercari may be blocking the request or has changed its layout."
-    #         )
-    #         self.take_screenshot(f"failure_{query.replace(' ', '_')}")
-    #         return []
-    #     except Exception as e:
-    #         self.logger.error(f"An unexpected error occurred during search: {e}")
-    #         self.take_screenshot(f"error_{query.replace(' ', '_')}")
-    #         self.close()
-    #         return []
-
-    def take_screenshot(self, filename: str):
-        """
-        Saves a screenshot of the current browser page for debugging.
-        """
-        if not self.driver:
-            self.logger.warning("Cannot take screenshot, driver is not active.")
-            return
-
-        safe_filename = re.sub(r'[\\/*?:"<>|]', "", filename)
-        timestamp = time.strftime("%Y%m%d-%H%M%S")
-        path = os.path.join("screenshots", f"{safe_filename}_{timestamp}.png")
-
-        os.makedirs("screenshots", exist_ok=True)
-        try:
-            self.driver.save_screenshot(path)
-            self.logger.info(f"Screenshot saved to: {path}")
-        except Exception as e:
-            self.logger.error(f"Failed to save screenshot: {e}")
 
     def close(self):
-        """
-        Closes the WebDriver session if it exists.
-        """
-        if self.driver:
-            try:
-                self.driver.quit()
-                self.logger.info("WebDriver closed successfully.")
-            except Exception as e:
-                self.logger.error(f"Error closing WebDriver: {e}")
-            finally:
-                self.driver = None
+
+        try:
+            self.session.close()
+
+        except Exception:
+            pass
+
+   
+
 
 
 if __name__ == "__main__":
-    # Example usage for testing the scraper directly
-    print("--- Testing MercariScraper ---")
-    try:
-        with open("config.json", "r", encoding="utf-8") as f:
-            test_config = json.load(f)
-    except FileNotFoundError:
-        print(
-            "Error: config.json not found. Please create it before running the test."
+
+    import json
+
+
+    with open(
+        "config.json",
+        encoding="utf-8"
+    ) as f:
+        config = json.load(f)
+
+
+    scraper = MercariScraper(config)
+
+
+    result = scraper.search_products(
+        {
+            "keyword": "shimano alfine",
+            "category_id": 1139
+        }
+    )
+
+
+    print(
+        json.dumps(
+            result[:3],
+            indent=2,
+            ensure_ascii=False
         )
-        exit(1)
-
-    test_config["browser"]["headless"] = False
-
-    scraper = MercariScraper(test_config)
-    try:
-        # A query likely to have results
-        test_query = "レッツノート CF-SV8"
-        products_found = scraper.search_products(test_query)
-        if products_found:
-            print(
-                f"\n[SUCCESS] Found {len(products_found)} products for '{test_query}'."
-            )
-            print("Sample product:")
-            print(json.dumps(products_found[0], indent=2, ensure_ascii=False))
-        else:
-            print(
-                f"\n[FAILURE] Found 0 products. Check logs and screenshots folder."
-            )
-    finally:
-        print("\n--- Test finished. Closing driver. ---")
-        scraper.close()
+    )

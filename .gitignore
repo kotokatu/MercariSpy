@@ -2,6 +2,7 @@
 .env
 .env.local
 .env.*
+dpop_private_key.pem
 
 # Virtual environments
 venv/

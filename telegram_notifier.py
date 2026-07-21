@@ -24,7 +24,7 @@ class TelegramNotifier:
         if not self.bot_token or not self.chat_id:
            raise ValueError("TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID are missing")
 
-        self.base_url = f"https://api.telegram.org/bot{self.bot_token}"
+        self.base_url = f"https://morning-dream-7e18.kotokatu320.workers.dev/bot{self.bot_token}"
         # Default JPY to EUR rate. Update this value if the rate changes significantly.
         # Example: If 1 EUR = 155 JPY, then 1 JPY = 1/155 = 0.0064 EUR
         self.current_exchange_rate = 0.0064
@@ -83,7 +83,7 @@ class TelegramNotifier:
             if photo_url:
                 payload.update({'photo': photo_url, 'caption': message[:1024]})
                 url = f"{self.base_url}/sendPhoto"
-                response = requests.post(url, json=payload, timeout=30)
+                response = requests.post(url, json=payload, timeout=60)
                 if response.status_code == 200:
                     self.logger.debug("Telegram photo message sent successfully.")
                     return True
@@ -95,7 +95,7 @@ class TelegramNotifier:
             payload.pop('caption', None)
             payload['text'] = message[:4096]
             url = f"{self.base_url}/sendMessage"
-            response = requests.post(url, json=payload, timeout=30)
+            response = requests.post(url, json=payload, timeout=60)
 
             if response.status_code == 200:
                 self.logger.debug("Telegram text message sent successfully.")

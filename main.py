@@ -19,7 +19,9 @@ from product_storage import ProductStorage
 from image_filter import ImageFilter
 
 # Load environment variables
-# load_dotenv()
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Initialize logger
 logger = get_logger(__name__)
@@ -43,8 +45,7 @@ class MercariMonitor:
         self.image_filter = ImageFilter(self.config)
 
         self.logger.info(
-            "Mercari Monitor initialized",
-            headless=self.config["browser"]["headless"],
+           "Mercari Monitor initialized"
         )
 
     def load_config(self) -> dict:

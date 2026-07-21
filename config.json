@@ -1,15 +1,4 @@
 {
-  "browser": {
-    "headless": true,
-    "window_size": [1920, 1080],
-    "page_load_timeout": 30,
-    "implicit_wait": 10,
-    "chrome_options": [
-      "--no-sandbox",
-      "--disable-dev-shm-usage",
-      "--disable-blink-features=AutomationControlled"
-    ]
-  },
   "selectors": {
     "listings_container": "li[data-testid='item-cell']",
     "product_listings": "li[data-testid='item-cell']",
