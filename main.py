@@ -16,7 +16,6 @@ from logging_config import get_logger
 from mercari_scraper import MercariScraper
 from telegram_notifier import TelegramNotifier
 from product_storage import ProductStorage
-from image_filter import ImageFilter
 
 # Load environment variables
 from dotenv import load_dotenv
@@ -42,7 +41,6 @@ class MercariMonitor:
         )
         self.scraper = MercariScraper(self.config)
         self.notifier = TelegramNotifier(self.config)
-        self.image_filter = ImageFilter(self.config)
 
         self.logger.info(
            "Mercari Monitor initialized"
@@ -95,23 +93,6 @@ class MercariMonitor:
             new_products = []
             for product in products:
                 if not self.storage.is_product_known(product["id"]):
-                    # Apply background filter if enabled
-                    if self.config["filtering"]["background_filter_enabled"]:
-                        try:
-                            if not self.image_filter.filter_background(
-                                product["image_url"]
-                            ):
-                                self.logger.debug(
-                                    "Skipped product due to background filter",
-                                    product_id=product["id"],
-                                )
-                                continue
-                        except Exception:
-                            self.logger.log_exception(
-                                "Background filter failed",
-                                product_id=product["id"],
-                            )
-
                     new_products.append(product)
                     self.storage.add_product(product)
 
