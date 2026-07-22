@@ -34,7 +34,25 @@ class TelegramNotifier:
 
        
 
+    def format_query(self, query: dict) -> str:
+        parts = []
 
+        if query.get("keyword"):
+            parts.append(query["keyword"])
+
+        if query.get("brand_id"):
+            parts.append(f"brand:{query['brand_id']}")
+
+        if query.get("category_id"):
+            parts.append(f"category:{query['category_id']}")
+
+        if query.get("price_min"):
+            parts.append(f"min:{query['price_min']}¥")
+
+        if query.get("price_max"):
+            parts.append(f"max:{query['price_max']}¥")
+
+        return ", ".join(parts)
     
     def escape_markdown_v2(self, text: str) -> str:
 
@@ -78,10 +96,7 @@ class TelegramNotifier:
         )
 
 
-        query_text = query.get(
-            "keyword",
-            str(query)
-        )
+        query_text = self.format_query(query)
 
         query_text = self.escape_markdown_v2(
             query_text
@@ -118,7 +133,7 @@ class TelegramNotifier:
         )
 
         query_text = self.escape_markdown_v2(
-            self._get_query_text(query)
+            self.format_query(query)
         )
 
         url = self.escape_markdown_v2(
