@@ -131,7 +131,6 @@ class TelegramNotifier:
             f"¥{old_price:,} "
             "⬇️\n"
             f"¥{new_price:,} "
-            f"\\(~€{new_eur:.2f}\\)\n\n"
             f"Query: `{query_text}`\n"
             f"[View on Mercari]({url})"
         )
