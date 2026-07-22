@@ -42,23 +42,17 @@ class TelegramNotifier:
         eur_amount = jpy_amount * rate
         return round(eur_amount, 2)
         
-    def _format_price_message(self, jpy_price: int, eur_price: float) -> str:
-        """Format price message with both currencies, escaping all special characters."""
-        # Format the euro price to a string and escape the decimal point.
-        eur_price_str = f"{eur_price:.2f}".replace('.', '\\.')
+    def _format_price_message(self, jpy_price: int) -> str:
+        """Format price message"""
         
         # Construct the final string, escaping '(', '~', and ')' for Telegram.
-        return f"¥{jpy_price:,} \\(\\~€{eur_price_str}\\)"
+        return f"¥{jpy_price})"
         
-        # Construct the final string with escaped parentheses and the escaped price
-        return f"¥{jpy_price:,} \\(~€{escaped_eur_price}\\)"
 
     def _format_product_message(self, product: Dict, query: str) -> str:
     
-        eur_price = self._convert_jpy_to_eur(product['price'])
         price_msg = self._format_price_message(
             product['price'],
-            eur_price
         )
 
         title = self.escape_markdown_v2(
@@ -69,8 +63,8 @@ class TelegramNotifier:
             query
         )
 
-        url = product["url"]
-
+        url = product["url"].replace(")", "\\)")
+        
         message = (
             "🚀 *New Product Found*\n\n"
             f"*{title}*\n"
