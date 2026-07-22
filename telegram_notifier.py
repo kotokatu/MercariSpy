@@ -142,41 +142,41 @@ class TelegramNotifier:
                 product.get("image_url")
             )
 
-    def _format_price_change_message(
-        self,
-        product: Dict,
-        query: str
-    ):
-
-        old = self._convert_jpy_to_eur(product["old_price"])
-        new = self._convert_jpy_to_eur(product["new_price"])
-
-
-        title = product["title"]
-
-        for char in [
-            '_','*','[',']','(',')',
-            '~','`','>','#','+',
-            '-','=','|','{','}',
-            '.','!'
-        ]:
-            title = title.replace(
-                char,
-                f'\\{char}'
-            )
-
-
-        return (
-            "💰 *Price changed*\n\n"
-            f"*{title}*\n\n"
-            f"¥{product['old_price']:,} "
-            f"\\(~€{old:.2f}\\)\n"
-            "⬇️\n"
-            f"¥{product['new_price']:,} "
-            f"\\(~€{new:.2f}\\)\n\n"
-            f"Query: `{query}`\n"
-            f"[View on Mercari]({product['url']})"
+    def _format_product_message(self, product: Dict, query: str) -> str:
+    
+        eur_price = self._convert_jpy_to_eur(product['price'])
+        price_msg = self._format_price_message(
+            product['price'],
+            eur_price
         )
+
+        title = self.escape_markdown_v2(
+            product["title"]
+        )
+
+        query = self.escape_markdown_v2(
+            query
+        )
+
+        url = product["url"]
+
+        message = (
+            "🚀 *New Product Found*\n\n"
+            f"*{title}*\n"
+            f"{price_msg}\n\n"
+            f"Query: `{query}`\n"
+            f"[View on Mercari]({url})"
+        )
+
+        return message
+
+    def escape_markdown_v2(self, text: str) -> str:
+        chars = r'_*[]()~`>#+-=|{}.!'
+        
+        for char in chars:
+            text = text.replace(char, '\\' + char)
+
+        return text
 
 if __name__ == "__main__":
     # This block allows for direct testing of the notifier script.
