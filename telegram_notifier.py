@@ -184,7 +184,8 @@ class TelegramNotifier:
 
                 self.logger.warning(
                     "Failed to send photo, fallback to text",
-                    reason=response.text,
+                    status=response.status_code,
+                    response=response.text[:500],
                 )
 
 
