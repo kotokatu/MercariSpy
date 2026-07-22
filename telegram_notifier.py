@@ -1,8 +1,9 @@
 #!/usr/bin/env python3.9
+
 import os
 import time
+import json
 import requests
-from datetime import datetime
 from typing import List, Dict
 
 from logging_config import get_logger
@@ -10,229 +11,319 @@ from logging_config import get_logger
 
 class TelegramNotifier:
     """
-    Telegram bot notification system with a fixed JPY to EUR currency conversion.
-    Provides instant notifications with product details and images.
+    Telegram bot notification system.
+    Supports new products and price change notifications.
     """
 
     def __init__(self, config: dict):
         self.config = config
         self.logger = get_logger("TelegramNotifier")
 
-        self.bot_token = os.getenv('TELEGRAM_BOT_TOKEN')
-        self.chat_id = os.getenv('TELEGRAM_CHAT_ID')
+        self.bot_token = os.getenv("TELEGRAM_BOT_TOKEN")
+        self.chat_id = os.getenv("TELEGRAM_CHAT_ID")
 
         if not self.bot_token or not self.chat_id:
-           raise ValueError("TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID are missing")
+            raise ValueError(
+                "TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID are missing"
+            )
 
-        self.base_url = f"https://morning-dream-7e18.kotokatu320.workers.dev/bot{self.bot_token}"
-        # Default JPY to EUR rate. Update this value if the rate changes significantly.
-        # Example: If 1 EUR = 155 JPY, then 1 JPY = 1/155 = 0.0064 EUR
+        self.base_url = (
+            f"https://morning-dream-7e18.kotokatu320.workers.dev/"
+            f"bot{self.bot_token}"
+        )
+
         self.current_exchange_rate = 0.0064
 
-    def _get_exchange_rate(self) -> float:
-        """
-        Returns the default exchange rate to avoid slow and unreliable API calls.
-        """
-        self.logger.debug("Using default exchange rate to prevent API timeout.")
-        return self.current_exchange_rate
 
     def _convert_jpy_to_eur(self, jpy_amount: int) -> float:
-        """Convert JPY amount to EUR using the stored rate."""
-        rate = self._get_exchange_rate()
-        eur_amount = jpy_amount * rate
-        return round(eur_amount, 2)
-        
-    def _format_price_message(self, jpy_price: int) -> str:
-        """Format price message"""
-        
-        # Construct the final string, escaping '(', '~', and ')' for Telegram.
-        return f"¥{jpy_price})"
-        
-
-    def _format_product_message(self, product: Dict, query: str) -> str:
-    
-        price_msg = self._format_price_message(
-            product['price'],
+        return round(
+            jpy_amount * self.current_exchange_rate,
+            2
         )
+
+
+    def escape_markdown_v2(self, text: str) -> str:
+        """
+        Escape Telegram MarkdownV2 reserved characters.
+        """
+
+        if text is None:
+            return ""
+
+        text = str(text)
+
+        chars = r"_*[]()~`>#+-=|{}.!\\"
+
+        for char in chars:
+            text = text.replace(
+                char,
+                "\\" + char
+            )
+
+        return text
+
+
+    def _get_query_text(self, query) -> str:
+        """
+        Convert query dict/string to readable text.
+        """
+
+        if isinstance(query, dict):
+            return query.get("keyword", "")
+
+        return str(query)
+
+
+    def _format_price_message(self, price: int) -> str:
+        return f"¥{price:,}"
+
+
+    def _format_product_message(
+        self,
+        product: Dict,
+        query
+    ) -> str:
 
         title = self.escape_markdown_v2(
-            product["title"]
+            product.get("title", "")
         )
 
-        query = self.escape_markdown_v2(
-            query
+        query_text = self.escape_markdown_v2(
+            self._get_query_text(query)
         )
 
-        url = product["url"].replace(")", "\\)")
-        
-        message = (
+        url = self.escape_markdown_v2(
+            product.get("url", "")
+        )
+
+        price = self._format_price_message(
+            product.get("price", 0)
+        )
+
+        return (
             "🚀 *New Product Found*\n\n"
             f"*{title}*\n"
-            f"{price_msg}\n\n"
-            f"Query: `{query}`\n"
+            f"{price}\n\n"
+            f"Query: `{query_text}`\n"
             f"[View on Mercari]({url})"
         )
 
-        return message
-    def send_telegram_message(self, message: str, photo_url: str = None) -> bool:
-        """Sends a message to Telegram, trying photo first, then text."""
-        time.sleep(self.config["notifications"]["rate_limit_delay"])
-
-        payload = {'chat_id': self.chat_id, 'parse_mode': 'MarkdownV2'}
-        
-        try:
-            # Try sending with a photo first if available
-            if photo_url:
-                payload.update({'photo': photo_url, 'caption': message[:1024]})
-                url = f"{self.base_url}/sendPhoto"
-                response = requests.post(url, json=payload, timeout=60)
-                if response.status_code == 200:
-                    self.logger.debug("Telegram photo message sent successfully.")
-                    return True
-                else:
-                    self.logger.warning(f"Failed to send photo, trying text only. Reason: {response.text}")
-
-            # Fallback to text-only message if photo fails or is not provided
-            payload.pop('photo', None)
-            payload.pop('caption', None)
-            payload['text'] = message[:4096]
-            url = f"{self.base_url}/sendMessage"
-            response = requests.post(url, json=payload, timeout=60)
-
-            if response.status_code == 200:
-                self.logger.debug("Telegram text message sent successfully.")
-                return True
-            else:
-                self.logger.error(f"Failed to send Telegram message: {response.text}")
-                return False
-
-        except Exception as e:
-            self.logger.error(f"Exception while sending Telegram message: {e}")
-            return False
-
-    def send_notification(self, product: Dict, query: str) -> bool:
-        """Formats and sends a notification for a single product."""
-        try:
-            message = self._format_product_message(product, query)
-            return self.send_telegram_message(message, product.get('image_url'))
-        except Exception as e:
-            self.logger.error(f"Error formatting single product notification: {e}")
-            return False
-
-    def send_notifications(self, products: List[Dict], query: str):
-        """Main entry point to send notifications for a list of products."""
-        if not products:
-            return
-
-        self.logger.info(f"Sending {len(products)} notifications for query: '{query}'")
-        for product in products:
-            self.send_notification(product, query)
-
-    def send_price_change_notifications(
-        self,
-        products: List[Dict],
-        query: str
-    ):
-        for product in products:
-            message = self._format_price_change_message(
-                product,
-                query
-            )
-
-            self.send_telegram_message(
-                message,
-                product.get("image_url")
-            )
 
     def _format_price_change_message(
         self,
         product: Dict,
-        query: str
-    ):
+        query
+    ) -> str:
 
-        old = self._convert_jpy_to_eur(product["old_price"])
-        new = self._convert_jpy_to_eur(product["new_price"])
+        old_price = product["old_price"]
+        new_price = product["new_price"]
 
+        old_eur = self._convert_jpy_to_eur(old_price)
+        new_eur = self._convert_jpy_to_eur(new_price)
 
-        title = product["title"]
+        title = self.escape_markdown_v2(
+            product.get("title", "")
+        )
 
-        for char in [
-            '_','*','[',']','(',')',
-            '~','`','>','#','+',
-            '-','=','|','{','}',
-            '.','!'
-        ]:
-            title = title.replace(
-                char,
-                f'\\{char}'
-            )
+        query_text = self.escape_markdown_v2(
+            self._get_query_text(query)
+        )
 
+        url = self.escape_markdown_v2(
+            product.get("url", "")
+        )
 
         return (
             "💰 *Price changed*\n\n"
             f"*{title}*\n\n"
-            f"¥{product['old_price']:,} "
-            f"\\(~€{old:.2f}\\)\n"
+            f"¥{old_price:,} "
+            f"\\(~€{old_eur:.2f}\\)\n"
             "⬇️\n"
-            f"¥{product['new_price']:,} "
-            f"\\(~€{new:.2f}\\)\n\n"
-            f"Query: `{query}`\n"
-            f"[View on Mercari]({product['url']})"
+            f"¥{new_price:,} "
+            f"\\(~€{new_eur:.2f}\\)\n\n"
+            f"Query: `{query_text}`\n"
+            f"[View on Mercari]({url})"
         )
 
-    def escape_markdown_v2(self, text: str) -> str:
-        chars = r'_*[]()~`>#+-=|{}.!'
-        
-        for char in chars:
-            text = text.replace(char, '\\' + char)
 
-        return text
+    def send_telegram_message(
+        self,
+        message: str,
+        photo_url: str = None
+    ) -> bool:
+
+        time.sleep(
+            self.config["notifications"]["rate_limit_delay"]
+        )
+
+        payload = {
+            "chat_id": self.chat_id,
+            "parse_mode": "MarkdownV2",
+        }
+
+        try:
+
+            if photo_url:
+
+                photo_payload = payload.copy()
+                photo_payload.update(
+                    {
+                        "photo": photo_url,
+                        "caption": message[:1024],
+                    }
+                )
+
+                response = requests.post(
+                    f"{self.base_url}/sendPhoto",
+                    json=photo_payload,
+                    timeout=60,
+                )
+
+                if response.status_code == 200:
+                    return True
+
+                self.logger.warning(
+                    "Failed to send photo, fallback to text",
+                    reason=response.text,
+                )
+
+
+            text_payload = payload.copy()
+            text_payload["text"] = message[:4096]
+
+            response = requests.post(
+                f"{self.base_url}/sendMessage",
+                json=text_payload,
+                timeout=60,
+            )
+
+            if response.status_code == 200:
+                return True
+
+            self.logger.error(
+                "Failed to send Telegram message",
+                error=response.text,
+            )
+
+            return False
+
+
+        except Exception as e:
+            self.logger.error(
+                "Telegram exception",
+                error=str(e),
+            )
+            return False
+
+
+
+    def send_notification(
+        self,
+        product: Dict,
+        query
+    ) -> bool:
+
+        try:
+
+            message = self._format_product_message(
+                product,
+                query,
+            )
+
+            return self.send_telegram_message(
+                message,
+                product.get("image_url"),
+            )
+
+        except Exception as e:
+
+            self.logger.error(
+                "Error formatting notification",
+                error=str(e),
+            )
+
+            return False
+
+
+
+    def send_notifications(
+        self,
+        products: List[Dict],
+        query
+    ):
+
+        if not products:
+            return
+
+        self.logger.info(
+            "Sending notifications",
+            count=len(products),
+            query=str(query),
+        )
+
+        for product in products:
+            self.send_notification(
+                product,
+                query,
+            )
+
+
+
+    def send_price_change_notifications(
+        self,
+        products: List[Dict],
+        query
+    ):
+
+        for product in products:
+
+            message = self._format_price_change_message(
+                product,
+                query,
+            )
+
+            self.send_telegram_message(
+                message,
+                product.get("image_url"),
+            )
+
+
 
 if __name__ == "__main__":
-    # This block allows for direct testing of the notifier script.
+
     print("--- Testing TelegramNotifier ---")
-    
-    # Load environment variables for testing
-    # from dotenv import load_dotenv
-    # load_dotenv()
-
-    self.bot_token = os.getenv('TELEGRAM_BOT_TOKEN')
-    self.chat_id = os.getenv('TELEGRAM_CHAT_ID')
-
-    if not self.bot_token or not self.chat_id:
-       raise ValueError("Missing TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID (check environment variables)")
-    
-    # Load config for testing
-    try:
-        with open("config.json", 'r', encoding="utf-8") as f:
-            test_config = json.load(f)
-    except FileNotFoundError:
-        print("Error: config.json not found. Please create it before running the test.")
-        exit(1)
-    except Exception as e:
-        print(f"Error loading config.json: {e}")
-        exit(1)
 
     try:
-        notifier = TelegramNotifier(test_config)
-        
-        print("Sending test notification...")
+
+        with open(
+            "config.json",
+            encoding="utf-8"
+        ) as f:
+            config = json.load(f)
+
+
+        notifier = TelegramNotifier(config)
+
+
         test_product = {
-            'id': 'm123456789',
-            'title': 'Test Product - Nintendo Switch (OLED Model)!',
-            'price': 35000,
-            'url': 'https://jp.mercari.com/item/m123456789',
-            'image_url': 'https://static.mercdn.net/c!/w=240/thumb/photos/m19215340744_1.jpg' # Example image
+            "id": "m123456789",
+            "title": "Test Product. Nintendo Switch!",
+            "price": 35000,
+            "url": "https://jp.mercari.com/item/m123456789",
+            "image_url": None,
         }
-        
-        success = notifier.send_notification(test_product, "test query")
-        
-        if success:
-            print("[SUCCESS] Test notification sent. Please check your Telegram.")
-        else:
-            print("[FAILURE] Failed to send test notification. Check logs and .env file.")
-            
-    except ValueError as e:
-        print(f"Error: {e}. Make sure TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID are in your .env file.")
+
+
+        notifier.send_notification(
+            test_product,
+            {
+                "keyword": "test.nitto"
+            }
+        )
+
+
+        print("Test message sent")
+
+
     except Exception as e:
-        print(f"An unexpected error occurred: {e}")
+        print(e)
