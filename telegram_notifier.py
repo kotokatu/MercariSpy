@@ -54,24 +54,32 @@ class TelegramNotifier:
         return f"¥{jpy_price:,} \\(~€{escaped_eur_price}\\)"
 
     def _format_product_message(self, product: Dict, query: str) -> str:
-        """Format individual product message for Telegram."""
+    
         eur_price = self._convert_jpy_to_eur(product['price'])
-        price_msg = self._format_price_message(product['price'], eur_price)
+        price_msg = self._format_price_message(
+            product['price'],
+            eur_price
+        )
 
-        # Using MarkdownV2 requires escaping special characters.
-        # This is a basic set of characters to escape.
-        title = product['title']
-        for char in ['_', '*', '[', ']', '(', ')', '~', '`', '>', '#', '+', '-', '=', '|', '{', '}', '.', '!']:
-            title = title.replace(char, f'\\{char}')
+        title = self.escape_markdown_v2(
+            product["title"]
+        )
 
-        message = f"🚀 *New Product Found*\n\n"
-        message += f"*{title}*\n"
-        message += f"{price_msg}\n\n"
-        message += f"Query: `{query}`\n"
-        message += f"[View on Mercari]({product['url']})"
+        query = self.escape_markdown_v2(
+            query
+        )
+
+        url = product["url"]
+
+        message = (
+            "🚀 *New Product Found*\n\n"
+            f"*{title}*\n"
+            f"{price_msg}\n\n"
+            f"Query: `{query}`\n"
+            f"[View on Mercari]({url})"
+        )
 
         return message
-
     def send_telegram_message(self, message: str, photo_url: str = None) -> bool:
         """Sends a message to Telegram, trying photo first, then text."""
         time.sleep(self.config["notifications"]["rate_limit_delay"])
@@ -142,33 +150,41 @@ class TelegramNotifier:
                 product.get("image_url")
             )
 
-    def _format_product_message(self, product: Dict, query: str) -> str:
-    
-        eur_price = self._convert_jpy_to_eur(product['price'])
-        price_msg = self._format_price_message(
-            product['price'],
-            eur_price
-        )
+    def _format_price_change_message(
+        self,
+        product: Dict,
+        query: str
+    ):
 
-        title = self.escape_markdown_v2(
-            product["title"]
-        )
+        old = self._convert_jpy_to_eur(product["old_price"])
+        new = self._convert_jpy_to_eur(product["new_price"])
 
-        query = self.escape_markdown_v2(
-            query
-        )
 
-        url = product["url"]
+        title = product["title"]
 
-        message = (
-            "🚀 *New Product Found*\n\n"
-            f"*{title}*\n"
-            f"{price_msg}\n\n"
+        for char in [
+            '_','*','[',']','(',')',
+            '~','`','>','#','+',
+            '-','=','|','{','}',
+            '.','!'
+        ]:
+            title = title.replace(
+                char,
+                f'\\{char}'
+            )
+
+
+        return (
+            "💰 *Price changed*\n\n"
+            f"*{title}*\n\n"
+            f"¥{product['old_price']:,} "
+            f"\\(~€{old:.2f}\\)\n"
+            "⬇️\n"
+            f"¥{product['new_price']:,} "
+            f"\\(~€{new:.2f}\\)\n\n"
             f"Query: `{query}`\n"
-            f"[View on Mercari]({url})"
+            f"[View on Mercari]({product['url']})"
         )
-
-        return message
 
     def escape_markdown_v2(self, text: str) -> str:
         chars = r'_*[]()~`>#+-=|{}.!'
