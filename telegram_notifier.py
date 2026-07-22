@@ -32,27 +32,16 @@ class TelegramNotifier:
             f"bot{self.bot_token}"
         )
 
-        self.current_exchange_rate = 0.0064
+       
 
 
-    def _convert_jpy_to_eur(self, jpy_amount: int) -> float:
-        return round(
-            jpy_amount * self.current_exchange_rate,
-            2
-        )
-
-
+    
     def escape_markdown_v2(self, text: str) -> str:
-        """
-        Escape Telegram MarkdownV2 reserved characters.
-        """
 
-        if text is None:
-            return ""
+        if not isinstance(text, str):
+            text = str(text)
 
-        text = str(text)
-
-        chars = r"_*[]()~`>#+-=|{}.!\\"
+        chars = r'_*[]()~`>#+-=|{}.!'
 
         for char in chars:
             text = text.replace(
@@ -78,32 +67,37 @@ class TelegramNotifier:
         return f"¥{price:,}"
 
 
-    def _format_product_message(
-        self,
-        product: Dict,
-        query
-    ) -> str:
+    def _format_product_message(self, product: Dict, query: dict) -> str:
+
+        price_msg = self._format_price_message(
+            product["price"]
+        )
 
         title = self.escape_markdown_v2(
-            product.get("title", "")
+            str(product["title"])
+        )
+
+
+        query_text = query.get(
+            "keyword",
+            str(query)
         )
 
         query_text = self.escape_markdown_v2(
-            self._get_query_text(query)
+            query_text
         )
 
-        url = self.escape_markdown_v2(
-            product.get("url", "")
+
+        url = product["url"].replace(
+            ")",
+            "\\)"
         )
 
-        price = self._format_price_message(
-            product.get("price", 0)
-        )
 
         return (
             "🚀 *New Product Found*\n\n"
             f"*{title}*\n"
-            f"{price}\n\n"
+            f"{price_msg}\n\n"
             f"Query: `{query_text}`\n"
             f"[View on Mercari]({url})"
         )
@@ -118,8 +112,6 @@ class TelegramNotifier:
         old_price = product["old_price"]
         new_price = product["new_price"]
 
-        old_eur = self._convert_jpy_to_eur(old_price)
-        new_eur = self._convert_jpy_to_eur(new_price)
 
         title = self.escape_markdown_v2(
             product.get("title", "")
@@ -137,7 +129,6 @@ class TelegramNotifier:
             "💰 *Price changed*\n\n"
             f"*{title}*\n\n"
             f"¥{old_price:,} "
-            f"\\(~€{old_eur:.2f}\\)\n"
             "⬇️\n"
             f"¥{new_price:,} "
             f"\\(~€{new_eur:.2f}\\)\n\n"
