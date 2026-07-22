@@ -266,6 +266,12 @@ class TelegramNotifier:
         query
     ):
 
+        self.logger.info(
+                "Sending notifications",
+                count=len(products),
+                query=str(query),
+            )
+
         for product in products:
 
             message = self._format_price_change_message(
