@@ -59,4 +59,7 @@ htmlcov/
 
 # Distribution
 *.tar.gz
-*.zipmercari_known_products.json
+*.zip
+
+
+mercari_known_products.json
