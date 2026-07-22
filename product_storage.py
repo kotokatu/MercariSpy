@@ -3,7 +3,7 @@
 import sqlite3
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Dict, Optional
+from typing import Optional
 
 from logging_config import get_logger
 
@@ -11,12 +11,13 @@ from logging_config import get_logger
 class ProductStorage:
     """
     SQLite storage for Mercari products.
+    Tracks products and price changes.
     """
 
     def __init__(
         self,
         storage_path: str = "mercari_products.db",
-        max_storage_days: int = 7,
+        max_storage_days: int = 365,
     ):
         self.storage_path = Path(storage_path)
         self.logger = get_logger("ProductStorage")
@@ -36,6 +37,7 @@ class ProductStorage:
             path=str(self.storage_path.absolute()),
         )
 
+
     def _create_tables(self):
         self.conn.execute(
             """
@@ -45,7 +47,20 @@ class ProductStorage:
                 price INTEGER,
                 url TEXT,
                 image_url TEXT,
-                added_at TEXT NOT NULL
+                added_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL
+            )
+            """
+        )
+
+        self.conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS price_history (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                product_id TEXT NOT NULL,
+                old_price INTEGER,
+                new_price INTEGER,
+                changed_at TEXT NOT NULL
             )
             """
         )
@@ -53,22 +68,32 @@ class ProductStorage:
         self.conn.commit()
 
 
-    def is_product_known(self, product_id: str) -> bool:
+    def get_product(self, product_id: str) -> Optional[dict]:
         cursor = self.conn.execute(
             """
-            SELECT 1 FROM products WHERE id = ?
+            SELECT *
+            FROM products
+            WHERE id = ?
             """,
             (str(product_id),),
         )
 
-        return cursor.fetchone() is not None
+        row = cursor.fetchone()
+
+        return dict(row) if row else None
+
+
+    def is_product_known(self, product_id: str) -> bool:
+        return self.get_product(product_id) is not None
 
 
     def add_product(self, product: dict):
         """
-        Add product if it does not exist.
+        Add new product.
+        Existing products are not overwritten.
         """
-        product_id = str(product["id"])
+
+        now = datetime.now().isoformat()
 
         try:
             self.conn.execute(
@@ -80,17 +105,19 @@ class ProductStorage:
                     price,
                     url,
                     image_url,
-                    added_at
+                    added_at,
+                    updated_at
                 )
-                VALUES (?, ?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
-                    product_id,
+                    str(product["id"]),
                     product.get("title", ""),
                     product.get("price", 0),
                     product.get("url", ""),
                     product.get("image_url", ""),
-                    datetime.now().isoformat(),
+                    now,
+                    now,
                 ),
             )
 
@@ -103,27 +130,101 @@ class ProductStorage:
             )
 
 
-    def get_product(self, product_id: str) -> Optional[dict]:
-        cursor = self.conn.execute(
+    def update_product_price(self, product: dict) -> Optional[dict]:
+        """
+        Update price if changed.
+        Returns old/new price info or None.
+        """
+
+        product_id = str(product["id"])
+        old_product = self.get_product(product_id)
+
+        if not old_product:
+            self.add_product(product)
+            return None
+
+
+        old_price = old_product["price"]
+        new_price = product.get("price", 0)
+
+
+        if old_price == new_price:
+            return None
+
+
+        now = datetime.now().isoformat()
+
+
+        self.conn.execute(
             """
-            SELECT * FROM products WHERE id = ?
+            INSERT INTO price_history
+            (
+                product_id,
+                old_price,
+                new_price,
+                changed_at
+            )
+            VALUES (?, ?, ?, ?)
             """,
-            (str(product_id),),
+            (
+                product_id,
+                old_price,
+                new_price,
+                now,
+            ),
         )
 
-        row = cursor.fetchone()
 
-        if row:
-            return dict(row)
+        self.conn.execute(
+            """
+            UPDATE products
+            SET
+                price = ?,
+                title = ?,
+                url = ?,
+                image_url = ?,
+                updated_at = ?
+            WHERE id = ?
+            """,
+            (
+                new_price,
+                product.get("title", ""),
+                product.get("url", ""),
+                product.get("image_url", ""),
+                now,
+                product_id,
+            ),
+        )
 
-        return None
+
+        self.conn.commit()
+
+
+        self.logger.info(
+            "Product price changed",
+            product_id=product_id,
+            old_price=old_price,
+            new_price=new_price,
+        )
+
+
+        return {
+            "id": product_id,
+            "title": product.get("title", ""),
+            "old_price": old_price,
+            "new_price": new_price,
+            "url": product.get("url", ""),
+            "image_url": product.get("image_url", ""),
+        }
 
 
     def cleanup_old_products(self):
+
         cutoff = (
             datetime.now() -
             timedelta(days=self.max_storage_days)
         ).isoformat()
+
 
         cursor = self.conn.execute(
             """
@@ -137,6 +238,7 @@ class ProductStorage:
 
         removed = cursor.rowcount
 
+
         if removed:
             self.logger.info(
                 "Cleaned old products",
@@ -149,7 +251,6 @@ class ProductStorage:
     def save_products(self):
         """
         Compatibility method.
-        SQLite commits immediately.
         """
         self.conn.commit()
 

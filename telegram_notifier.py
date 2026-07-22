@@ -126,6 +126,57 @@ class TelegramNotifier:
         for product in products:
             self.send_notification(product, query)
 
+    def send_price_change_notifications(
+        self,
+        products: List[Dict],
+        query: str
+    ):
+        for product in products:
+            message = self._format_price_change_message(
+                product,
+                query
+            )
+
+            self.send_telegram_message(
+                message,
+                product.get("image_url")
+            )
+
+    def _format_price_change_message(
+        self,
+        product: Dict,
+        query: str
+    ):
+
+        old = self._convert_jpy_to_eur(product["old_price"])
+        new = self._convert_jpy_to_eur(product["new_price"])
+
+
+        title = product["title"]
+
+        for char in [
+            '_','*','[',']','(',')',
+            '~','`','>','#','+',
+            '-','=','|','{','}',
+            '.','!'
+        ]:
+            title = title.replace(
+                char,
+                f'\\{char}'
+            )
+
+
+        return (
+            "💰 *Price changed*\n\n"
+            f"*{title}*\n\n"
+            f"¥{product['old_price']:,} "
+            f"\\(~€{old:.2f}\\)\n"
+            "⬇️\n"
+            f"¥{product['new_price']:,} "
+            f"\\(~€{new:.2f}\\)\n\n"
+            f"Query: `{query}`\n"
+            f"[View on Mercari]({product['url']})"
+        )
 
 if __name__ == "__main__":
     # This block allows for direct testing of the notifier script.

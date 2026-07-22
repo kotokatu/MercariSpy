@@ -86,11 +86,20 @@ class MercariMonitor:
             )
 
             new_products = []
+            price_changes = []
+
 
             for product in products:
+
                 if not self.storage.is_product_known(product["id"]):
-                    self.storage.add_product(product)
                     new_products.append(product)
+                    self.storage.add_product(product)
+
+                else:
+                    change = self.storage.update_product_price(product)
+
+                    if change:
+                        price_changes.append(change)
 
             if new_products:
                 self.logger.info(
@@ -98,7 +107,20 @@ class MercariMonitor:
                     count=len(new_products),
                     query=query,
                 )
-                self.notifier.send_notifications(new_products, query)
+                self.notifier.send_notifications(
+                    new_products,
+                    query
+                )
+            elif price_changes:
+                self.logger.info(
+                    "Found price changes",
+                    count=len(price_changes),
+                    query=query,
+                )
+                self.notifier.send_price_change_notifications(
+                    price_changes,
+                    query
+                )
             else:
                 self.logger.debug(
                     "No new products for query",
