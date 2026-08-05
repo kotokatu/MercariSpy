@@ -148,7 +148,7 @@ class ProductStorage:
         new_price = product.get("price", 0)
 
 
-        if old_price - new_price < 1000:
+        if old_price > new_price:
             return None
 
 
