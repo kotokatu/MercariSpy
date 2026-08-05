@@ -37,7 +37,7 @@
     "max_images_per_notification": 5
   },
   "storage": {
-    "max_products_to_remember": 10000,
-    "cleanup_after_days": 14
+    "max_products_to_remember": 1000000,
+    "cleanup_after_days": 365
   }
 }
