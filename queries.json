@@ -63,14 +63,15 @@
     "category_id": 1164
   },
   {
-    "keyword": "nemo fillo elite"
-  },
-  {
-    "keyword": "nemo hornet",
+    "keyword": "durston",
     "category_id": 1164
   },
   {
-    "keyword": "nemo dragonfly",
+    "keyword": "nemo",
+    "category": "1167"
+  },
+  {
+    "keyword": "nemo",
     "category_id": 1164
   },
   {
@@ -120,17 +121,8 @@
     "keyword": "ティートンブロス"
   },
   {
-    "keyword": "FAIRWEATHER レインポンチョ"
-  },
-  {
-    "keyword": "fairweather poncho"
-  },
-  {
     "category_id": 9760,
     "brand_id": 57368
-  },
-  {
-    "keyword": "bluelug poncho"
   },
   {
     "keyword": "helinox chair zero"
@@ -178,16 +170,6 @@
     "keyword": "bedrock clog"
   },
   {
-    "keyword": "DD SuperLight Tarp"
-  },
-  {
-    "keyword": "Rab Siltarp"
-  },
-  {
     "keyword": "paago works ninja tarp"
-  },
-  {
-    "keyword": "durston",
-    "category_id": 1164
   }
 ]
