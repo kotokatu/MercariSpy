@@ -103,7 +103,7 @@ class MercariScraper:
         if query.get("brand_id"):
             brand_id = query["brand_id"]
 
-            if isinstance(category_id, list):
+            if isinstance(brand_id, list):
                 search_condition["brandId"] = brand_id
             else:
                 search_condition["brandId"] = [brand_id]

@@ -20,7 +20,7 @@ from typing import Optional
 from dotenv import load_dotenv
 
 from logging_config import get_logger
-from mercari_client import MercariClient
+from mercari_scraper import MercariScraper
 from telegram_notifier import TelegramNotifier
 from product_storage import ProductStorage
 
@@ -48,7 +48,7 @@ class MercariMonitor:
             max_storage_days=self.config["storage"]["cleanup_after_days"]
         )
 
-        self.client = MercariClient(
+        self.scraper = MercariScraper(
             self.config
         )
 
@@ -146,7 +146,7 @@ class MercariMonitor:
                 query=query,
             )
 
-            products = self.client.search_products(
+            products = self.scraper.search_products(
                 query
             )
 
@@ -463,7 +463,7 @@ class MercariMonitor:
             pass
 
         try:
-            self.client.close()
+            self.scraper.close()
 
         except Exception:
             pass
