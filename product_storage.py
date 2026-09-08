@@ -11,7 +11,12 @@ from logging_config import get_logger
 class ProductStorage:
     """
     SQLite storage for Mercari products.
-    Tracks products and price changes.
+
+    Stores:
+    - product information
+    - current price
+    - price history
+    - price tracking status
     """
 
     def __init__(
@@ -37,8 +42,13 @@ class ProductStorage:
             path=str(self.storage_path.absolute()),
         )
 
-
     def _create_tables(self):
+        """
+        Create database tables if they don't exist.
+
+        Existing databases are migrated separately by migrate_db.py.
+        """
+
         self.conn.execute(
             """
             CREATE TABLE IF NOT EXISTS products (
@@ -48,7 +58,8 @@ class ProductStorage:
                 url TEXT,
                 image_url TEXT,
                 added_at TEXT NOT NULL,
-                updated_at TEXT NOT NULL
+                updated_at TEXT NOT NULL,
+                tracking INTEGER NOT NULL DEFAULT 0
             )
             """
         )
@@ -67,8 +78,16 @@ class ProductStorage:
 
         self.conn.commit()
 
+    def get_product(
+        self,
+        product_id: str,
+    ) -> Optional[dict]:
+        """
+        Return product by Mercari ID.
 
-    def get_product(self, product_id: str) -> Optional[dict]:
+        Returns None if the product is not known.
+        """
+
         cursor = self.conn.execute(
             """
             SELECT *
@@ -82,15 +101,25 @@ class ProductStorage:
 
         return dict(row) if row else None
 
+    def is_product_known(
+        self,
+        product_id: str,
+    ) -> bool:
+        """
+        Check whether product is already stored.
+        """
 
-    def is_product_known(self, product_id: str) -> bool:
         return self.get_product(product_id) is not None
 
-
-    def add_product(self, product: dict):
+    def add_product(
+        self,
+        product: dict,
+    ):
         """
-        Add new product.
+        Add a new product.
+
         Existing products are not overwritten.
+        New products are not tracked by default.
         """
 
         now = datetime.now().isoformat()
@@ -106,9 +135,10 @@ class ProductStorage:
                     url,
                     image_url,
                     added_at,
-                    updated_at
+                    updated_at,
+                    tracking
                 )
-                VALUES (?, ?, ?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     str(product["id"]),
@@ -118,6 +148,7 @@ class ProductStorage:
                     product.get("image_url", ""),
                     now,
                     now,
+                    0,
                 ),
             )
 
@@ -129,51 +160,54 @@ class ProductStorage:
                 error=str(e),
             )
 
-
-    def update_product_price(self, product: dict) -> Optional[dict]:
+    def update_product(
+        self,
+        product: dict,
+    ) -> Optional[dict]:
         """
-        Update price if changed.
-        Returns old/new price info or None.
+        Update an existing product.
+
+        The current price is always stored.
+
+        If the price changed, a record is added to price_history.
+
+        Returns price change information if the price changed,
+        otherwise None.
         """
 
         product_id = str(product["id"])
+
         old_product = self.get_product(product_id)
 
         if not old_product:
             self.add_product(product)
             return None
 
-
         old_price = old_product["price"]
         new_price = product.get("price", 0)
 
-
-        if old_price - new_price < 1000:
-            return None
-
-
         now = datetime.now().isoformat()
 
+        if old_price != new_price:
 
-        self.conn.execute(
-            """
-            INSERT INTO price_history
-            (
-                product_id,
-                old_price,
-                new_price,
-                changed_at
+            self.conn.execute(
+                """
+                INSERT INTO price_history
+                (
+                    product_id,
+                    old_price,
+                    new_price,
+                    changed_at
+                )
+                VALUES (?, ?, ?, ?)
+                """,
+                (
+                    product_id,
+                    old_price,
+                    new_price,
+                    now,
+                ),
             )
-            VALUES (?, ?, ?, ?)
-            """,
-            (
-                product_id,
-                old_price,
-                new_price,
-                now,
-            ),
-        )
-
 
         self.conn.execute(
             """
@@ -196,9 +230,10 @@ class ProductStorage:
             ),
         )
 
-
         self.conn.commit()
 
+        if old_price == new_price:
+            return None
 
         self.logger.info(
             "Product price changed",
@@ -206,7 +241,6 @@ class ProductStorage:
             old_price=old_price,
             new_price=new_price,
         )
-
 
         return {
             "id": product_id,
@@ -217,19 +251,90 @@ class ProductStorage:
             "image_url": product.get("image_url", ""),
         }
 
+    # ------------------------------------------------------------------
+    # Price tracking
+    # ------------------------------------------------------------------
+
+    def set_tracking(
+        self,
+        product_id: str,
+        tracking: bool,
+    ) -> bool:
+        """
+        Enable or disable price tracking for a product.
+
+        Returns True if the product exists and was updated.
+        """
+
+        product_id = str(product_id)
+
+        cursor = self.conn.execute(
+            """
+            UPDATE products
+            SET tracking = ?
+            WHERE id = ?
+            """,
+            (
+                1 if tracking else 0,
+                product_id,
+            ),
+        )
+
+        self.conn.commit()
+
+        if cursor.rowcount == 0:
+            self.logger.warning(
+                "Cannot change tracking for unknown product",
+                product_id=product_id,
+                tracking=tracking,
+            )
+
+            return False
+
+        self.logger.info(
+            "Product tracking changed",
+            product_id=product_id,
+            tracking=tracking,
+        )
+
+        return True
+
+    def is_tracking(
+        self,
+        product_id: str,
+    ) -> bool:
+        """
+        Return True if price tracking is enabled for the product.
+        """
+
+        product = self.get_product(product_id)
+
+        if not product:
+            return False
+
+        return bool(product["tracking"])
+
+    # ------------------------------------------------------------------
+    # Cleanup
+    # ------------------------------------------------------------------
 
     def cleanup_old_products(self):
+        """
+        Remove old products that are not being tracked.
+
+        Tracked products are kept regardless of their age.
+        """
 
         cutoff = (
-            datetime.now() -
-            timedelta(days=self.max_storage_days)
+            datetime.now()
+            - timedelta(days=self.max_storage_days)
         ).isoformat()
-
 
         cursor = self.conn.execute(
             """
             DELETE FROM products
             WHERE added_at < ?
+              AND tracking = 0
             """,
             (cutoff,),
         )
@@ -237,7 +342,6 @@ class ProductStorage:
         self.conn.commit()
 
         removed = cursor.rowcount
-
 
         if removed:
             self.logger.info(
@@ -247,15 +351,20 @@ class ProductStorage:
 
         return removed
 
-
     def save_products(self):
         """
         Compatibility method.
+        SQLite commits changes immediately, but this keeps
+        compatibility with the existing application.
         """
+
         self.conn.commit()
 
-
     def close(self):
+        """
+        Close database connection.
+        """
+
         try:
             self.conn.close()
         except Exception:
