@@ -130,14 +130,14 @@ class MercariMonitor:
         """
         Process one Mercari search query.
 
-        Logic:
+        New product:
+            save -> notify
 
-        1. Search Mercari.
-        2. For every returned product:
-           - unknown -> save + notify as new product
-           - known + tracking enabled -> check for price decrease
-           - known + tracking disabled -> no price notification
-        3. Current price is always updated.
+        Existing product:
+            if tracking is enabled and price decreased:
+                notify
+
+            current price is always updated.
         """
 
         try:
@@ -185,34 +185,31 @@ class MercariMonitor:
                 # Existing product
                 # ------------------------------------------------------
 
-                is_tracking = bool(
-                    stored_product["tracking"]
-                )
-
                 old_price = stored_product["price"]
                 new_price = product.get("price", 0)
 
-                # Update product and save price history.
+                tracking = bool(
+                    stored_product["tracking"]
+                )
+
+                # Save current product data and price.
                 price_change = self.storage.update_product(
                     product
                 )
 
-                # ------------------------------------------------------
-                # Price tracking
-                # ------------------------------------------------------
-
+                # Notify only about price decreases for tracked items.
                 if (
-                    is_tracking
+                    tracking
                     and old_price is not None
                     and new_price < old_price
+                    and price_change
                 ):
-                    if price_change:
-                        price_changes.append(
-                            price_change
-                        )
+                    price_changes.append(
+                        price_change
+                    )
 
             # ----------------------------------------------------------
-            # Notifications
+            # New product notifications
             # ----------------------------------------------------------
 
             if new_products:
@@ -226,6 +223,10 @@ class MercariMonitor:
                     new_products,
                     query,
                 )
+
+            # ----------------------------------------------------------
+            # Price change notifications
+            # ----------------------------------------------------------
 
             if price_changes:
                 self.logger.info(
@@ -259,12 +260,10 @@ class MercariMonitor:
         """
         Process Telegram callback queries.
 
-        This handles only inline-button actions:
+        Supported callbacks:
 
             track:<product_id>
             stop:<product_id>
-
-        It does not perform any Mercari searches.
         """
 
         try:
@@ -288,14 +287,28 @@ class MercariMonitor:
 
                 action, product_id, callback_query_id = parsed
 
+                # ------------------------------------------------------
+                # Determine desired state
+                # ------------------------------------------------------
+
                 if action == "track":
                     tracking = True
+                    callback_text = (
+                        "✅ Price tracking enabled"
+                    )
 
                 elif action == "stop":
                     tracking = False
+                    callback_text = (
+                        "🛑 Price tracking disabled"
+                    )
 
                 else:
                     continue
+
+                # ------------------------------------------------------
+                # Update database
+                # ------------------------------------------------------
 
                 updated = self.storage.set_tracking(
                     product_id,
@@ -310,6 +323,19 @@ class MercariMonitor:
 
                     continue
 
+                # ------------------------------------------------------
+                # Answer callback immediately
+                # ------------------------------------------------------
+
+                self.notifier.answer_callback(
+                    callback_query_id,
+                    callback_text,
+                )
+
+                # ------------------------------------------------------
+                # Update inline buttons
+                # ------------------------------------------------------
+
                 callback_message = update.get(
                     "callback_query",
                     {},
@@ -318,11 +344,6 @@ class MercariMonitor:
                 )
 
                 if not callback_message:
-                    self.notifier.answer_callback(
-                        callback_query_id,
-                        "Done",
-                    )
-
                     continue
 
                 chat = callback_message.get(
@@ -334,29 +355,10 @@ class MercariMonitor:
                 )
 
                 if not chat or not message_id:
-                    self.notifier.answer_callback(
-                        callback_query_id,
-                        "Done",
-                    )
-
                     continue
 
                 chat_id = str(
                     chat["id"]
-                )
-
-                if tracking:
-                    callback_text = (
-                        "✅ Price tracking enabled"
-                    )
-                else:
-                    callback_text = (
-                        "🛑 Price tracking disabled"
-                    )
-
-                self.notifier.answer_callback(
-                    callback_query_id,
-                    callback_text,
                 )
 
                 self.notifier.edit_tracking_buttons(
@@ -381,61 +383,88 @@ class MercariMonitor:
     # Monitoring
     # ------------------------------------------------------------------
 
-    def run_once(self):
+    def run_once(self) -> None:
         """
-        Run one complete monitoring cycle.
+        Run one complete Mercari search cycle.
+        """
 
-        Telegram callbacks are checked before and after the
-        Mercari search cycle.
+        queries = self.load_search_queries()
+
+        if not queries:
+            self.logger.warning(
+                "No search queries configured"
+            )
+
+            return
+
+        self.logger.info(
+            "Starting monitoring cycle"
+        )
+
+        for query in queries:
+            # Check Telegram before every Mercari query.
+            # This prevents callback requests from waiting
+            # through the whole search cycle.
+            self.process_telegram_updates()
+
+            self.process_query(
+                query
+            )
+
+            time.sleep(
+                self.config["timing"]["search_delay"]
+            )
+
+        removed = self.storage.cleanup_old_products()
+
+        if removed:
+            self.logger.info(
+                "Old products removed",
+                count=removed,
+            )
+
+        self.logger.info(
+            "Monitoring cycle completed"
+        )
+
+    def run_forever(self) -> None:
         """
+        Run monitor continuously.
+
+        Telegram callbacks are checked frequently between
+        Mercari search cycles.
+        """
+
+        # Run the first search immediately.
+        next_search = 0
 
         try:
-            # Process button clicks that happened since the
-            # previous cycle.
-            self.process_telegram_updates()
+            while True:
+                # Telegram callbacks should be processed
+                # independently from Mercari searches.
+                self.process_telegram_updates()
 
-            queries = self.load_search_queries()
+                now = time.time()
 
-            if not queries:
-                self.logger.warning(
-                    "No search queries configured"
-                )
+                if now >= next_search:
+                    self.run_once()
 
-                return
+                    search_interval = (
+                        self.config["timing"]["search_interval"]
+                    )
 
+                    next_search = (
+                        time.time()
+                        + search_interval
+                    )
+
+                # Short sleep keeps Telegram responsive
+                # without busy-looping.
+                time.sleep(1)
+
+        except KeyboardInterrupt:
             self.logger.info(
-                "Starting monitoring cycle"
-            )
-
-            for query in queries:
-                self.process_query(
-                    query
-                )
-
-                time.sleep(
-                    self.config["timing"]["search_delay"]
-                )
-
-            removed = self.storage.cleanup_old_products()
-
-            if removed:
-                self.logger.info(
-                    "Old products removed",
-                    count=removed,
-                )
-
-            # Catch button clicks that happened while the
-            # Mercari queries were running.
-            self.process_telegram_updates()
-
-            self.logger.info(
-                "Monitoring cycle completed"
-            )
-
-        except Exception as e:
-            self.logger.error(
-                "Monitoring cycle failed",
-                error=str(e),
+                "Stopped by user"
             )
 
     # ------------------------------------------------------------------
@@ -493,7 +522,7 @@ def main():
             args.config
         )
 
-        monitor.run_once()
+        monitor.run_forever()
 
     except KeyboardInterrupt:
         logger.info(

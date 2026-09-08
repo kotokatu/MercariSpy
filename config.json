@@ -19,7 +19,8 @@
     "category_url": "https://jp.mercari.com/category/"
   },
   "timing": {
-    "search_delay": 3,
+    "search_delay": 5,
+    "search_interval": 900,
     "page_transition_delay": 2,
     "retry_delay": 5,
     "max_retries": 3
