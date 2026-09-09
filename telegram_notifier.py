@@ -338,9 +338,15 @@ class TelegramNotifier:
                 query,
             )
 
+            reply_markup = self._tracking_keyboard(
+                product["id"],
+                tracking=True,
+            )
+
             return self.send_telegram_message(
                 message,
                 product.get("image_url"),
+                reply_markup,
             )
 
         except Exception as e:
