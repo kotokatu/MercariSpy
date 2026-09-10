@@ -235,13 +235,6 @@ class ProductStorage:
         if old_price == new_price:
             return None
 
-        self.logger.info(
-            "Product price changed",
-            product_id=product_id,
-            old_price=old_price,
-            new_price=new_price,
-        )
-
         return {
             "id": product_id,
             "title": product.get("title", ""),

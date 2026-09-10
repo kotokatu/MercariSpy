@@ -204,6 +204,13 @@ class MercariMonitor:
                     and new_price < old_price
                     and price_change
                 ):
+                    self.logger.info(
+                        "Tracked product price changed",
+                        product_id=product_id,
+                        old_price=old_price,
+                        new_price=new_price,
+                    )
+
                     price_changes.append(
                         price_change
                     )
