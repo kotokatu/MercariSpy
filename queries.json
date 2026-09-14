@@ -84,11 +84,11 @@
   },
   {
     "keyword": "850FP",
-    "category_id": 2634
+    "category_id": [1167, 2770]
   },
   {
     "keyword": "900FP",
-    "category_id": 2634
+    "category_id": [1167, 2770]
   },
   {
     "keyword": "msr",
