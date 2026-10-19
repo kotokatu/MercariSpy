@@ -124,142 +124,142 @@ class MercariMonitor:
     # ------------------------------------------------------------------
 
     
-def process_query(
-    self,
-    query: dict,
-) -> None:
-    """
-    Process one Mercari search query.
+    def process_query(
+        self,
+        query: dict,
+    ) -> None:
+        """
+        Process one Mercari search query.
 
-    Sold product:
-        delete from database if it exists.
+        Sold product:
+            delete from database if it exists.
 
-    New active product:
-        save -> notify.
+        New active product:
+            save -> notify.
 
-    Existing active product:
-        update current data and price;
-        notify if tracking is enabled and price decreased.
-    """
+        Existing active product:
+            update current data and price;
+            notify if tracking is enabled and price decreased.
+        """
 
-    try:
-        self.logger.info(
-            "Processing query",
-            query=query,
-        )
-
-        products = self.scraper.search_products(query)
-
-        self.logger.debug(
-            "Products found",
-            count=len(products),
-            query=query,
-        )
-
-        new_products = []
-        price_changes = []
-
-        for product in products:
-            product_id = str(product["id"])
-            product_status = product.get("status")
-
-            stored_product = self.storage.get_product(
-                product_id
+        try:
+            self.logger.info(
+                "Processing query",
+                query=query,
             )
 
-            # ------------------------------------------------------
-            # Sold product
-            # ------------------------------------------------------
+            products = self.scraper.search_products(query)
 
-            if product_status == "ITEM_STATUS_SOLD_OUT":
-                if stored_product is not None:
-                    if self.storage.delete_product(product_id):
-                        self.logger.info(
-                            "Removed sold-out product",
-                            product_id=product_id,
-                        )
+            self.logger.debug(
+                "Products found",
+                count=len(products),
+                query=query,
+            )
 
-                continue
+            new_products = []
+            price_changes = []
 
-            # ------------------------------------------------------
-            # New product
-            # ------------------------------------------------------
+            for product in products:
+                product_id = str(product["id"])
+                product_status = product.get("status")
 
-            if stored_product is None:
-                self.storage.add_product(product)
-                new_products.append(product)
-                continue
-
-            # ------------------------------------------------------
-            # Existing product
-            # ------------------------------------------------------
-
-            old_price = stored_product["price"]
-            new_price = product.get("price", 0)
-            tracking = bool(stored_product["tracking"])
-
-            # Save current product data and price.
-            price_change = self.storage.update_product(product)
-
-            # Notify only about price decreases for tracked items.
-            if (
-                tracking
-                and old_price is not None
-                and new_price < old_price
-                and price_change
-            ):
-                self.logger.info(
-                    "Tracked product price decreased",
-                    product_id=product_id,
-                    old_price=old_price,
-                    new_price=new_price,
+                stored_product = self.storage.get_product(
+                    product_id
                 )
 
-                price_changes.append(price_change)
+                # ------------------------------------------------------
+                # Sold product
+                # ------------------------------------------------------
 
-        # ----------------------------------------------------------
-        # New product notifications
-        # ----------------------------------------------------------
+                if product_status == "ITEM_STATUS_SOLD_OUT":
+                    if stored_product is not None:
+                        if self.storage.delete_product(product_id):
+                            self.logger.info(
+                                "Removed sold-out product",
+                                product_id=product_id,
+                            )
 
-        if new_products:
-            self.logger.info(
-                "New products found",
-                count=len(new_products),
+                    continue
+
+                # ------------------------------------------------------
+                # New product
+                # ------------------------------------------------------
+
+                if stored_product is None:
+                    self.storage.add_product(product)
+                    new_products.append(product)
+                    continue
+
+                # ------------------------------------------------------
+                # Existing product
+                # ------------------------------------------------------
+
+                old_price = stored_product["price"]
+                new_price = product.get("price", 0)
+                tracking = bool(stored_product["tracking"])
+
+                # Save current product data and price.
+                price_change = self.storage.update_product(product)
+
+                # Notify only about price decreases for tracked items.
+                if (
+                    tracking
+                    and old_price is not None
+                    and new_price < old_price
+                    and price_change
+                ):
+                    self.logger.info(
+                        "Tracked product price decreased",
+                        product_id=product_id,
+                        old_price=old_price,
+                        new_price=new_price,
+                    )
+
+                    price_changes.append(price_change)
+
+            # ----------------------------------------------------------
+            # New product notifications
+            # ----------------------------------------------------------
+
+            if new_products:
+                self.logger.info(
+                    "New products found",
+                    count=len(new_products),
+                    query=query,
+                )
+
+                self.notifier.send_notifications(
+                    new_products,
+                    query,
+                )
+
+            # ----------------------------------------------------------
+            # Price change notifications
+            # ----------------------------------------------------------
+
+            if price_changes:
+                self.logger.info(
+                    "Tracked price decreases found",
+                    count=len(price_changes),
+                    query=query,
+                )
+
+                self.notifier.send_price_change_notifications(
+                    price_changes,
+                    query,
+                )
+
+            if not new_products and not price_changes:
+                self.logger.debug(
+                    "Nothing changed",
+                    query=query,
+                )
+
+        except Exception:
+            self.logger.log_exception(
+                "Error processing query",
                 query=query,
             )
-
-            self.notifier.send_notifications(
-                new_products,
-                query,
-            )
-
-        # ----------------------------------------------------------
-        # Price change notifications
-        # ----------------------------------------------------------
-
-        if price_changes:
-            self.logger.info(
-                "Tracked price decreases found",
-                count=len(price_changes),
-                query=query,
-            )
-
-            self.notifier.send_price_change_notifications(
-                price_changes,
-                query,
-            )
-
-        if not new_products and not price_changes:
-            self.logger.debug(
-                "Nothing changed",
-                query=query,
-            )
-
-    except Exception:
-        self.logger.log_exception(
-            "Error processing query",
-            query=query,
-        )
 
 
     # ------------------------------------------------------------------
