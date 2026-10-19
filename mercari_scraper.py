@@ -69,7 +69,7 @@ class MercariScraper:
             "excludeKeyword": "",
             "sort": "SORT_CREATED_TIME",
             "order": "ORDER_DESC",
-            "status": ["STATUS_ON_SALE"],
+            "status": [],
             "sizeId": [],
             "categoryId": [],
             "brandId": [],
@@ -151,8 +151,9 @@ class MercariScraper:
 
             price = int(item.get("price", 0))
             title = item.get("name") or item.get("title") or ""
-
+            status = item.get("status")
             image = None
+
             if item.get("photos"):
                 image = item["photos"][0].get("uri")
             elif item.get("thumbnails"):
@@ -172,6 +173,7 @@ class MercariScraper:
                 "price": price,
                 "url": url,
                 "image_url": image,
+                "status": status,
             }
 
         except Exception as e:

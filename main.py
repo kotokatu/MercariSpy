@@ -169,6 +169,14 @@ class MercariMonitor:
                 # ------------------------------------------------------
                 # New product
                 # ------------------------------------------------------
+                if product.get("status") == "ITEM_STATUS_SOLD_OUT":
+                    if self.storage.get_product(product_id):
+                        if self.storage.delete_product(product_id):
+                            self.logger.info(
+                                "Removed sold-out product",
+                                product_id=product_id,
+                            )
+                    continue
 
                 if stored_product is None:
                     self.storage.add_product(

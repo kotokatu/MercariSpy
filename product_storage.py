@@ -307,6 +307,26 @@ class ProductStorage:
 
         return bool(product["tracking"])
 
+
+    def delete_product(self, product_id: str) -> bool:
+        product_id = str(product_id)
+
+        try:
+            self.conn.execute(
+                "DELETE FROM products WHERE id = ?",
+                (product_id,),
+            )
+            self.conn.commit()
+            return True
+
+        except Exception as e:
+            self.logger.error(
+                "Failed deleting product",
+                product_id=product_id,
+                error=str(e),
+            )
+            return False
+
     # ------------------------------------------------------------------
     # Cleanup
     # ------------------------------------------------------------------
