@@ -178,7 +178,6 @@ class MercariMonitor:
                                 "Removed sold-out product",
                                 product_id=product_id,
                             )
-
                     continue
 
                 # ------------------------------------------------------
