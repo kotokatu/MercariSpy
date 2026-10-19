@@ -512,42 +512,42 @@ class MercariMonitor:
         )
 
 
-    def main():
-        parser = argparse.ArgumentParser(
-            description="Mercari.jp product monitor"
+def main():
+    parser = argparse.ArgumentParser(
+        description="Mercari.jp product monitor"
+    )
+
+    parser.add_argument(
+        "--config",
+        default="config.json",
+        help="Configuration file path",
+    )
+
+    args = parser.parse_args()
+
+    monitor = None
+
+    try:
+        monitor = MercariMonitor(
+            args.config
         )
 
-        parser.add_argument(
-            "--config",
-            default="config.json",
-            help="Configuration file path",
+        monitor.run_forever()
+
+    except KeyboardInterrupt:
+        logger.info(
+            "Stopped by user"
         )
 
-        args = parser.parse_args()
+    except Exception:
+        logger.log_exception(
+            "Fatal error in main"
+        )
 
-        monitor = None
-
-        try:
-            monitor = MercariMonitor(
-                args.config
-            )
-
-            monitor.run_forever()
-
-        except KeyboardInterrupt:
-            logger.info(
-                "Stopped by user"
-            )
-
-        except Exception:
-            logger.log_exception(
-                "Fatal error in main"
-            )
-
-        finally:
-            if monitor:
-                monitor.close()
+    finally:
+        if monitor:
+            monitor.close()
 
 
-    if __name__ == "__main__":
-        main()
+if __name__ == "__main__":
+    main()
