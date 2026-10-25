@@ -123,12 +123,16 @@
     "category_id": 318
   },
   {
-    "keyword": "eddie bauer 900",
+    "keyword": "NANGA Mountain Lodge",
     "category_id": 318
   },
   {
-    "keyword": "marmot 1000",
-    "category_id": 318
+    "keyword": "mont bell ダウンパーカ",
+    "category_id": [318, 141]
+  },
+  {
+    "keyword": "モンベル ダウンパーカ",
+    "category_id": [318, 141]
   },
   {
     "brand_id": 57376
