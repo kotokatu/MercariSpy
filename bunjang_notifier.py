@@ -35,6 +35,8 @@ class BunjangTelegramNotifier(TelegramNotifier):
 
         if query.get("keyword"):
             parts.append(str(query["keyword"]))
+        if query.get("category_id"):
+            parts.append(str(query["category_id"]))
         if query.get("price_min") is not None:
             parts.append(f"min:₩{int(query['price_min']):,}")
         if query.get("price_max") is not None:
