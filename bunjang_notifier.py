@@ -26,7 +26,8 @@ class BunjangTelegramNotifier(TelegramNotifier):
 
         # Direct Telegram API, independent of the Mercari bot proxy.
         self.base_url = (
-            f"https://api.telegram.org/bot{self.bot_token}"
+            f"https://morning-dream-7e18.kotokatu320.workers.dev/"
+            f"bot{self.bot_token}"
         )
 
     def format_query(self, query: dict) -> str:
