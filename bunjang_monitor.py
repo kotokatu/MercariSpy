@@ -107,6 +107,9 @@ class BunjangMonitor:
         callback_id = callback.get("id")
         tracking = action == "btrack"
 
+        product = self.storage.get_product(product_id)
+        product_url = product.get("url") if product else None
+
         updated = self.storage.set_tracking(product_id, tracking)
         if callback_id:
             if not updated:
@@ -129,6 +132,7 @@ class BunjangMonitor:
                 message_id=message_id,
                 product_id=product_id,
                 tracking=tracking,
+                product_url=product_url,
             )
         return True
 

@@ -87,7 +87,10 @@ class BunjangTelegramNotifier(TelegramNotifier):
         )
 
     def _tracking_keyboard(
-        self, product_id: str, tracking: bool = False
+        self,
+        product_id: str,
+        tracking: bool = False,
+        product_url: str = None,
     ) -> dict:
         product_id = str(product_id)
 
@@ -110,6 +113,12 @@ class BunjangTelegramNotifier(TelegramNotifier):
                 "callback_data": f"bstop:{product_id}",
             }
 
-        return {
-            "inline_keyboard": [[track_button, stop_button]]
-        }
+        keyboard = [[track_button, stop_button]]
+
+        if product_url:
+            keyboard.append([{
+                "text": "↗ Open on Bunjang",
+                "url": product_url,
+            }])
+
+        return {"inline_keyboard": keyboard}

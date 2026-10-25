@@ -138,23 +138,13 @@ class TelegramNotifier:
     # Inline keyboards
     # ------------------------------------------------------------------
 
+    
     def _tracking_keyboard(
         self,
         product_id: str,
         tracking: bool = False,
+        product_url: str = None,
     ) -> dict:
-        """
-        Build inline keyboard for a product.
-
-        Not tracked:
-            ❤️ Track price
-            🗑 Stop tracking
-
-        Tracked:
-            🔔 Tracking
-            🗑 Stop
-        """
-
         product_id = str(product_id)
 
         if tracking:
@@ -162,31 +152,30 @@ class TelegramNotifier:
                 "text": "🔔 Tracking",
                 "callback_data": f"track:{product_id}",
             }
-
             stop_button = {
                 "text": "🗑 Stop",
                 "callback_data": f"stop:{product_id}",
             }
-
         else:
             track_button = {
                 "text": "❤️ Track price",
                 "callback_data": f"track:{product_id}",
             }
-
             stop_button = {
                 "text": "🗑 Stop tracking",
                 "callback_data": f"stop:{product_id}",
             }
 
-        return {
-            "inline_keyboard": [
-                [
-                    track_button,
-                    stop_button,
-                ]
-            ]
-        }
+        keyboard = [[track_button, stop_button]]
+
+        if product_url:
+            keyboard.append([{
+                "text": "↗ Open on Mercari",
+                "url": product_url,
+            }])
+
+        return {"inline_keyboard": keyboard}
+
 
     # ------------------------------------------------------------------
     # Telegram API
@@ -284,6 +273,7 @@ class TelegramNotifier:
             reply_markup = self._tracking_keyboard(
                 product["id"],
                 tracking=False,
+                product_url=product["url"],
             )
 
             return self.send_telegram_message(
@@ -341,6 +331,7 @@ class TelegramNotifier:
             reply_markup = self._tracking_keyboard(
                 product["id"],
                 tracking=True,
+                product_url=product["url"],
             )
 
             return self.send_telegram_message(
@@ -533,6 +524,7 @@ class TelegramNotifier:
         message_id: int,
         product_id: str,
         tracking: bool,
+        product_url: str = None,
     ) -> bool:
         """
         Replace tracking buttons on an existing Telegram message.
@@ -541,6 +533,7 @@ class TelegramNotifier:
         reply_markup = self._tracking_keyboard(
             product_id,
             tracking=tracking,
+            product_url=product_url,
         )
 
         try:
