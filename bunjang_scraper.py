@@ -24,9 +24,16 @@ class BunjangScraper:
             self.logger.warning("Skipping Bunjang query without keyword", query=query)
             return []
 
+        
+        search_condition = {"q": keyword, "sort": "latest"}
+
+        if query.get("category_id"):
+            search_condition["categoryId"] = query.get("category_id")
+
+
         response = self.session.get(
             self.API_URL,
-            params={"q": keyword, "sort": "latest"},
+            search_condition,
             timeout=30,
         )
         response.raise_for_status()
