@@ -25,7 +25,11 @@ class BunjangScraper:
             return []
 
         
-        search_condition = {"q": keyword, "sort": "latest"}
+        search_condition = {
+            "q": keyword, 
+            "sort": "latest", 
+            "policyKey": "pw.product.keyword"
+            }
 
         if query.get("category_id"):
             search_condition["categoryId"] = query.get("category_id")
