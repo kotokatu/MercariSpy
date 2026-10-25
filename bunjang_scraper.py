@@ -26,7 +26,7 @@ class BunjangScraper:
 
         response = self.session.get(
             self.API_URL,
-            params={"q": keyword},
+            params={"q": keyword, "sort": "latest"},
             timeout=30,
         )
         response.raise_for_status()
