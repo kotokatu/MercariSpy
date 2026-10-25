@@ -33,7 +33,7 @@ class BunjangScraper:
 
         response = self.session.get(
             self.API_URL,
-            search_condition,
+            params=search_condition,
             timeout=30,
         )
         response.raise_for_status()
