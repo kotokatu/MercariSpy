@@ -591,6 +591,9 @@ class TelegramNotifier:
 
         action, product_id, callback_query_id = parsed
 
+        product = self.storage.get_product(product_id)
+        product_url = product.get("url") if product else None
+
         message = callback_query.get("message")
 
         if not message:
@@ -628,6 +631,7 @@ class TelegramNotifier:
             message_id=message_id,
             product_id=product_id,
             tracking=tracking,
+            product_url=product_url,
         )
 
         return answered and edited
