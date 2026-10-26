@@ -295,7 +295,8 @@ class MercariMonitor:
                     continue
 
                 action, product_id, callback_query_id = parsed
-
+                product = self.storage.get_product(product_id)
+                product_url = product.get("url") if product else None
                 # ------------------------------------------------------
                 # Determine desired state
                 # ------------------------------------------------------
@@ -375,6 +376,7 @@ class MercariMonitor:
                     message_id=message_id,
                     product_id=product_id,
                     tracking=tracking,
+                    product_url=product_url,
                 )
 
                 self.logger.info(
