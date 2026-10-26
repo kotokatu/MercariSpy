@@ -63,7 +63,6 @@ class BunjangTelegramNotifier(TelegramNotifier):
             f"*{title}*\n"
             f"{self._format_price_message(product.get('price', 0))}\n\n"
             f"Query: `{query_text}`\n"
-            f"[View on Bunjang]({url})"
         )
 
     def _format_price_change_message(
@@ -85,7 +84,6 @@ class BunjangTelegramNotifier(TelegramNotifier):
             f"₩{old_price:,} ⬇️\n"
             f"₩{new_price:,}\n\n"
             f"Query: `{query_text}`\n"
-            f"[View on Bunjang]({url})"
         )
 
     def _tracking_keyboard(
