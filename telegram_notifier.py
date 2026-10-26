@@ -100,7 +100,6 @@ class TelegramNotifier:
             f"*{title}*\n"
             f"{price_msg}\n\n"
             f"Query: `{query_text}`\n"
-            f"[View on Mercari]({url})"
         )
 
     def _format_price_change_message(
@@ -131,7 +130,6 @@ class TelegramNotifier:
             "⬇️\n"
             f"¥{new_price:,}\n\n"
             f"Query: `{query_text}`\n"
-            f"[View on Mercari]({url})"
         )
 
     # ------------------------------------------------------------------
