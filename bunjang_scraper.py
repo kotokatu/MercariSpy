@@ -8,7 +8,7 @@ from logging_config import get_logger
 
 
 class BunjangScraper:
-    API_URL = "https://api.bunjang.co.kr/api/search/v8/pw/product/specs/keyword"
+    API_URL = "https://api.bunjang.co.kr/api/search/v8/web/search"
 
     def __init__(self):
         self.logger = get_logger("BunjangScraper")
@@ -41,28 +41,20 @@ class BunjangScraper:
         response.raise_for_status()
         payload = response.json()
 
-        print("HTTP status:", response.status_code)
-        print("Top-level keys:", list(payload.keys()))
-        print("data keys:", list(payload.get("data", {}).keys()))
-        print("data.responses:", payload.get("data", {}).get("responses"))
 
-        blocks = (
+        responses = (
             payload.get("data", {})
-            .get("searchSpec", {})
-            .get("uiBlockList", [])
-        )
+            .get("responses", {})
+)
 
-        grid = next(
-            (
-                block for block in blocks
-                if block.get("id") == "mainGrid"
-                and block.get("blockType") == "productList.grid.main"
-            ),
-            None,
-        )
+        grid = responses.get("mainGrid")
 
         if not grid:
-            self.logger.warning("Bunjang response did not contain mainGrid")
+            self.logger.warning(
+                "Bunjang response did not contain mainGrid",
+                keyword=keyword,
+                response_keys=list(responses.keys()),
+            )
             return []
 
         search_response = grid.get("searchResponse") or {}
