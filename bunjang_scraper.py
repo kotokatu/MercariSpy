@@ -33,6 +33,8 @@ class BunjangScraper:
             search_condition["q"] = keyword
             search_condition["policyKey"] = "pw.product.keyword"
 
+        self.logger.info("Bunjang search query: %s", search_condition)
+
         response = self.session.get(
             self.API_URL,
             params=search_condition,
