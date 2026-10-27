@@ -43,17 +43,10 @@ class BunjangScraper:
 
         blocks = (
             payload.get("data", {})
-            .get("searchSpec", {})
-            .get("uiBlockList", [])
+            .get("responses", {})
         )
-        grid = next(
-            (
-                block for block in blocks
-                if block.get("id") == "mainGrid"
-                and block.get("blockType") == "productList.grid.main"
-            ),
-            None,
-        )
+        grid = responses.get("mainGrid")
+        
         if not grid:
             self.logger.warning("Bunjang response did not contain mainGrid", keyword=keyword)
             return []
