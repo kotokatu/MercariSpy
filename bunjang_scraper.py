@@ -27,7 +27,7 @@ class BunjangScraper:
             search_condition["categoryId"] = query.get("category_id")
             search_condition["policyKey"] = "pw.product.category"
 
-        keyword = str(query.get("keyword", "")).strip()
+        keyword = query.get("keyword")
 
         if keyword:
             search_condition["q"] = keyword
