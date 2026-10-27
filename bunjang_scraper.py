@@ -23,6 +23,12 @@ class BunjangScraper:
             "sort": "latest", 
             }
 
+        if query.get("min_price"):
+            search_condition["minPrice"] = query.get("min_price")
+            
+        if query.get("max_price"):
+            search_condition["maxPrice"] = query.get("max_price")
+
         if query.get("category_id"):
             search_condition["categoryId"] = query.get("category_id")
             search_condition["policyKey"] = "pw.product.category"

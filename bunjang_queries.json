@@ -8,7 +8,9 @@
     "category_id": 320300300
   },
   {
-    "category_id": 320300300
+    "category_id": 320300300,
+    "min_price": 70000,
+    "max_price": 285000
   },
   {
     "keyword": "베드락",
