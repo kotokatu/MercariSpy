@@ -41,14 +41,21 @@ class BunjangScraper:
         response.raise_for_status()
         payload = response.json()
 
-        responses = (
+        blocks = (
             payload.get("data", {})
-            .get("responses", {})
+            .get("searchSpec", {})
+            .get("uiBlockList", [])
         )
-        grid = responses.get("mainGrid")
-
+        grid = next(
+            (
+                block for block in blocks
+                if block.get("id") == "mainGrid"
+                and block.get("blockType") == "productList.grid.main"
+            ),
+            None,
+        )
         if not grid:
-            self.logger.warning("Bunjang response did not contain mainGrid", keyword=keyword)
+            self.logger.warning("Bunjang response did not contain mainGrid")
             return []
 
         search_response = grid.get("searchResponse") or {}
