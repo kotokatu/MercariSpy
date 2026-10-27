@@ -19,21 +19,19 @@ class BunjangScraper:
         })
 
     def search_products(self, query: dict) -> List[Dict]:
-        keyword = str(query.get("keyword", "")).strip()
-        if not keyword:
-            self.logger.warning("Skipping Bunjang query without keyword", query=query)
-            return []
-
-        
         search_condition = {
-            "q": keyword, 
             "sort": "latest", 
-            "policyKey": "pw.product.keyword"
             }
 
         if query.get("category_id"):
             search_condition["categoryId"] = query.get("category_id")
+            search_condition["policyKey"] = "pw.product.category"
 
+        keyword = str(query.get("keyword", "")).strip()
+
+        if keyword:
+            search_condition["q"] = keyword
+            search_condition["policyKey"] = "pw.product.keyword"
 
         response = self.session.get(
             self.API_URL,
