@@ -41,12 +41,12 @@ class BunjangScraper:
         response.raise_for_status()
         payload = response.json()
 
-        blocks = (
+        responses = (
             payload.get("data", {})
             .get("responses", {})
         )
         grid = responses.get("mainGrid")
-        
+
         if not grid:
             self.logger.warning("Bunjang response did not contain mainGrid", keyword=keyword)
             return []
