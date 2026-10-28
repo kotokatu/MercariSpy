@@ -1,7 +1,9 @@
 [
   {
     "keyword": "kolon",
-    "category_id": 320300300
+    "category_id": 320300300,
+    "min_price": 130000,
+    "max_price": 130000
   },
   {
     "keyword": "코오롱",
