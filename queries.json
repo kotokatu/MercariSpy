@@ -1,6 +1,6 @@
 [
   {
-    "category_id": 9800
+    "category_id?": 9800
   },
   {
     "category_id": [9684, 9675]
@@ -10,12 +10,13 @@
     "category_id": [2775, 2776, 2781]
   },
   {
-    "category_id": 9807
+    "category_id?": 9807
   },
   {
-    "category_id": 2685
+    "category_id?": 2685
   },
   {
+    "keyword": "nemo",
     "category_id": 2690
   },
   {
@@ -27,16 +28,16 @@
     "category_id": 1139
   },
   {
-    "keyword": "paul component",
-    "category_id": 1139
+    "keyword?": "paul component",
+    "category_id?": 1139
   },
   {
     "keyword": "ocean air cycles",
     "category_id": 1139
   },
   {
-    "keyword": "nitto",
-    "category_id": 1139
+    "keyword?": "nitto",
+    "category_id?": 1139
   },
   {
     "keyword": "crust",
@@ -51,57 +52,57 @@
     "category_id": 1139
   },
   {
-    "keyword": "sugino",
-    "category_id": 1139
+    "keyword?": "sugino",
+    "category_id?": 1139
   },
   {
-    "keyword": "sim works",
-    "category_id": 1139
+    "keyword?": "sim works",
+    "category_id?": 1139
   },
   {
-    "keyword": "white industries",
-    "category_id": 1139
+    "keyword?": "white industries",
+    "category_id?": 1139
   },
   {
-    "keyword": "fairweather",
-    "category_id": 1139
+    "keyword?": "fairweather",
+    "category_id?": 1139
   },
   {
-    "keyword": "パニアバ",
-    "category_id": 1139
+    "keyword?": "パニアバ",
+    "category_id?": 1139
   },
   {
-    "keyword": "big agnes",
-    "category_id": 1164
+    "keyword?": "big agnes",
+    "category_id?": 1164
   },
   {
-    "keyword": "durston",
-    "category_id": 1164
+    "keyword?": "durston",
+    "category_id?": 1164
+  },
+  {
+    "keyword?": "nemo",
+    "category_id?": 1167
   },
   {
     "keyword": "nemo",
-    "category_id": 1167
-  },
-  {
-    "keyword": "nemo",
     "category_id": 1164
   },
   {
-    "keyword": "850FP",
-    "category_id": [1167, 2770]
+    "keyword?": "850FP",
+    "category_id?": [1167, 2770]
   },
   {
-    "keyword": "900FP",
-    "category_id": [1167, 2770]
+    "keyword?": "900FP",
+    "category_id?": [1167, 2770]
   },
   {
-    "keyword": "swift industries"
+    "keyword?": "swift industries"
   },
   {
     "keyword": "ile porteur"
   },
   {
-    "keyword": "alpenblow"
+    "keyword?": "alpenblow"
   },
   {
     "keyword": "hulsroy"
@@ -116,7 +117,7 @@
     "keyword": "guide tennie"
   },
   {
-    "keyword": "blue lug"
+    "keyword?": "blue lug"
   },
   {
     "keyword": "kolon sport",
@@ -139,50 +140,50 @@
     "category_id": 318
   },
   {
-    "brand_id": 57376
+    "brand_id?": 57376
   },
   {
-    "keyword": "ultraromance"
+    "keyword?": "ultraromance"
   },
   {
-    "keyword": "teton bros"
+    "keyword?": "teton bros"
   },
   {
     "keyword": "alpha hoodie"
   },
   {
-    "keyword": "montbell rinko"
+    "keyword?": "montbell rinko"
   },
   {
-    "keyword": "montbell 輪行バッグ"
+    "keyword?": "montbell 輪行バッグ"
   },
   {
-    "keyword": "ティートンブロス"
+    "keyword?": "ティートンブロス"
   },
   {
-    "category_id": 9760,
-    "brand_id": 57368
+    "category_id?": 9760,
+    "brand_id?": 57368
   },
   {
-    "keyword": "helinox chair zero"
+    "keyword?": "helinox chair zero"
   },
   {
-    "keyword": "nemo moonlite"
+    "keyword?": "nemo moonlite"
   },
   {
-    "keyword": "メリノスピン　ライト"
+    "keyword?": "メリノスピン　ライト"
   },
   {
-    "keyword": "モンベル ウォームアッ"
+    "keyword?": "モンベル ウォームアッ"
   },
   {
-    "keyword": "montbell warm up"
+    "keyword?": "montbell warm up"
   },
   {
-    "keyword": "モンベル シルクシーツ"
+    "keyword?": "モンベル シルクシーツ"
   },
   {
-    "keyword": "bedrock sandals"
+    "keyword?": "bedrock sandals"
   },
   {
     "keyword": "bedrock clog"
@@ -191,22 +192,22 @@
     "keyword": "ベッドロックサンダル"
   },
   {
-    "keyword": "and wander"
+    "keyword?": "and wander"
   },
   {
-    "keyword": "alk phenix"
+    "keyword?": "alk phenix"
   },
   {
-    "keyword": "アルクフェニックス"
+    "keyword?": "アルクフェニックス"
   },
   {
-    "keyword": "ニーモ フィッロエリート"
+    "keyword?": "ニーモ フィッロエリート"
   },
   {
     "keyword": "Salomon GR10K Quest"
   },
   {
-    "keyword": "paago works ninja tarp"
+    "keyword?": "paago works ninja tarp"
   },
   {
     "keyword": "PaaGo WORKS r500"
