@@ -140,6 +140,18 @@
     "category_id": 318
   },
   {
+    "keyword": "mont bell",
+    "category_id": 318,
+    "min_price": 12000,
+    "max_price": 25000
+  },
+  {
+    "keyword": "モンベル",
+    "category_id": 318,
+    "min_price": 12000,
+    "max_price": 25000
+  },
+  {
     "brand_id?": 57376
   },
   {
