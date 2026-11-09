@@ -152,6 +152,12 @@
     "price_max": 25000
   },
   {
+    "keyword": "columbia",
+    "category_id": 318,
+    "price_min": 12000,
+    "price_max": 25000
+  },
+  {
     "brand_id?": 57376
   },
   {
