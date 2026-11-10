@@ -91,6 +91,9 @@ class MercariScraper:
 
         if query.get("keyword"):
             search_condition["keyword"] = query["keyword"]
+            
+        if query.get("exclude_keyword"):
+            search_condition["excludeKeyword"] = query["exclude_keyword"]
 
         if query.get("category_id"):
             category_id = query["category_id"]
