@@ -3,7 +3,8 @@
     "category_id?": 9800
   },
   {
-    "category_id": [9684, 9675]
+    "category_id": [9684, 9675],
+    "exclude_keyword": "shimano"
   },
   {
     "keyword": "alpha",
