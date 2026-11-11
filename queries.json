@@ -1,23 +1,11 @@
 [
   {
-    "skip": true,
-    "category_id": 9800
-  },
-  {
     "category_id": [9684, 9675],
     "exclude_keyword": "shimano"
   },
   {
     "keyword": "alpha",
     "category_id": [2775, 2776, 2781]
-  },
-  {
-    "skip": true,
-    "category_id": 9807
-  },
-  {
-    "skip": true,
-    "category_id": 2685
   },
   {
     "keyword": "nemo",
@@ -32,17 +20,7 @@
     "category_id": 1139
   },
   {
-    "skip": true,
-    "keyword": "paul component",
-    "category_id": 1139
-  },
-  {
     "keyword": "ocean air cycles",
-    "category_id": 1139
-  },
-  {
-    "skip": true,
-    "keyword": "nitto",
     "category_id": 1139
   },
   {
@@ -58,70 +36,11 @@
     "category_id": 1139
   },
   {
-    "skip": true,
-    "keyword": "sugino",
-    "category_id": 1139
-  },
-  {
-    "skip": true,
-    "keyword": "sim works",
-    "category_id": 1139
-  },
-  {
-    "skip": true,
-    "keyword": "white industries",
-    "category_id": 1139
-  },
-  {
-    "skip": true,
-    "keyword": "fairweather",
-    "category_id": 1139
-  },
-  {
-    "skip": true,
-    "keyword": "パニアバ",
-    "category_id": 1139
-  },
-  {
-    "skip": true,
-    "keyword": "big agnes",
-    "category_id": 1164
-  },
-  {
-    "skip": true,
-    "keyword": "durston",
-    "category_id": 1164
-  },
-  {
-    "skip": true,
-    "keyword": "nemo",
-    "category_id": 1167
-  },
-  {
     "keyword": "nemo",
     "category_id": 1164
-  },
-  {
-    "skip": true,
-    "keyword": "850FP",
-    "category_id": [1167, 2770]
-  },
-  {
-    "skip": true,
-    "keyword": "900FP",
-    "category_id": [1167, 2770]
-  },
-  {
-    "skip": true,
-    "keyword": "swift industries",
-    "category_id": 1139
   },
   {
     "keyword": "ile porteur"
-  },
-  {
-    "skip": true,
-    "keyword": "alpenblow"
   },
   {
     "keyword": "hulsroy"
@@ -134,10 +53,6 @@
   },
   {
     "keyword": "guide tennie"
-  },
-  {
-    "skip": true,
-    "keyword": "blue lug"
   },
   {
     "keyword": "kolon sport",
@@ -178,64 +93,7 @@
     "price_max": 25000
   },
   {
-    "skip": true,
-    "brand_id": 57376
-  },
-  {
-    "skip": true,
-    "keyword": "ultraromance"
-  },
-  {
-    "skip": true,
-    "keyword": "teton bros"
-  },
-  {
     "keyword": "alpha hoodie"
-  },
-  {
-    "skip": true,
-    "keyword": "montbell rinko"
-  },
-  {
-    "skip": true,
-    "keyword": "montbell 輪行バッグ"
-  },
-  {
-    "skip": true,
-    "keyword": "ティートンブロス"
-  },
-  {
-    "skip": true,
-    "category_id": 9760,
-    "brand_id": 57368
-  },
-  {
-    "skip": true,
-    "keyword": "helinox chair zero"
-  },
-  {
-    "skip": true,
-    "keyword": "nemo moonlite"
-  },
-  {
-    "skip": true,
-    "keyword": "メリノスピン　ライト"
-  },
-  {
-    "skip": true,
-    "keyword": "モンベル ウォームアッ"
-  },
-  {
-    "skip": true,
-    "keyword": "montbell warm up"
-  },
-  {
-    "skip": true,
-    "keyword": "モンベル シルクシーツ"
-  },
-  {
-    "skip": true,
-    "keyword": "bedrock sandals"
   },
   {
     "keyword": "bedrock clog"
@@ -244,27 +102,7 @@
     "keyword": "ベッドロックサンダル"
   },
   {
-    "skip": true,
-    "keyword": "and wander"
-  },
-  {
-    "skip": true,
-    "keyword": "alk phenix"
-  },
-  {
-    "skip": true,
-    "keyword": "アルクフェニックス"
-  },
-  {
-    "skip": true,
-    "keyword": "ニーモ フィッロエリート"
-  },
-  {
     "keyword": "Salomon GR10K Quest"
-  },
-  {
-    "skip": true,
-    "keyword": "paago works ninja tarp"
   },
   {
     "keyword": "PaaGo WORKS r500"
